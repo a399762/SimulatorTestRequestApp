@@ -3,9 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31019.35
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestRequestXMLParser", "TestRequestXMLParser\TestRequestXMLParser.csproj", "{C5C88180-4784-40B1-875C-610A0D9BC8B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MQTester", "MQTester\MQTester.csproj", "{F72CCFF6-94E0-4F84-A6FD-2F2272B93B01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestRequestUI", "TestRequestUI\TestRequestUI.csproj", "{4795EE5F-5DD2-4DCC-BD30-7845295D087F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IBMWebTestConsole", "IBMWebTestConsole\IBMWebTestConsole.csproj", "{5599C753-037A-41EE-9A67-2B5933A11A44}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimBridge", "SimBridge\SimBridge.csproj", "{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimTestRequestBridge", "SimTestRequestBridge\SimTestRequestBridge.csproj", "{258829F1-DB95-4E58-A363-C22D6A4805DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +17,22 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C5C88180-4784-40B1-875C-610A0D9BC8B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C5C88180-4784-40B1-875C-610A0D9BC8B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C5C88180-4784-40B1-875C-610A0D9BC8B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C5C88180-4784-40B1-875C-610A0D9BC8B1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4795EE5F-5DD2-4DCC-BD30-7845295D087F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4795EE5F-5DD2-4DCC-BD30-7845295D087F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4795EE5F-5DD2-4DCC-BD30-7845295D087F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4795EE5F-5DD2-4DCC-BD30-7845295D087F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F72CCFF6-94E0-4F84-A6FD-2F2272B93B01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F72CCFF6-94E0-4F84-A6FD-2F2272B93B01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F72CCFF6-94E0-4F84-A6FD-2F2272B93B01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F72CCFF6-94E0-4F84-A6FD-2F2272B93B01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5599C753-037A-41EE-9A67-2B5933A11A44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5599C753-037A-41EE-9A67-2B5933A11A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5599C753-037A-41EE-9A67-2B5933A11A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5599C753-037A-41EE-9A67-2B5933A11A44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{258829F1-DB95-4E58-A363-C22D6A4805DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{258829F1-DB95-4E58-A363-C22D6A4805DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{258829F1-DB95-4E58-A363-C22D6A4805DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{258829F1-DB95-4E58-A363-C22D6A4805DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Serialization;
 using TestRequestXMLParser;
 
 namespace TestRequestUI
@@ -17,14 +19,14 @@ namespace TestRequestUI
         private static readonly object _refreshLock = new object();
         private static readonly object _loadLock = new object();
         
-        ThreadedBindingList<Test> listOfTestRequests;
+        ThreadedBindingList<l2l1testreq> listOfTestRequests;
 
 
         public Form1()
         {
             InitializeComponent();
             
-            listOfTestRequests = new ThreadedBindingList<Test>();
+            listOfTestRequests = new ThreadedBindingList<l2l1testreq>();
             testRequestListBox.DisplayMember = "Test_number";
             testRequestListBox.ValueMember = "Test_number";
             testRequestListBox.DataSource = listOfTestRequests;
@@ -40,7 +42,7 @@ namespace TestRequestUI
             try
             {
                 //load selected test request
-                Test selectedTestRequest = (Test)((ListBox)sender).SelectedItem;
+                l2l1testreq selectedTestRequest = (l2l1testreq)((ListBox)sender).SelectedItem;
 
                 asyncLoadTestRequest(selectedTestRequest);
             }
@@ -54,10 +56,17 @@ namespace TestRequestUI
         {
             //refresh list of test requests
             asyncLoadTestRequests(); 
+
+
+            //test 
+
+
+
+
         }
 
 
-        private async void asyncLoadTestRequest(Test selectedTestRequest)
+        private async void asyncLoadTestRequest(l2l1testreq selectedTestRequest)
         {
             await Task.Run(() => loadTestRequest(selectedTestRequest));
         }
@@ -76,6 +85,8 @@ namespace TestRequestUI
             //allow only one running instance at a time.
             lock (_refreshLock)
             {
+                listOfTestRequests.Clear();
+
                 String testRequestFolderPath = Properties.Settings.Default.TestRequestFolderPath;
 
                 //with folder path, get list of files with .xml extensions
@@ -86,8 +97,36 @@ namespace TestRequestUI
                 {
                     try
                     {
-                        var request = TestRequest.TestRequestParse(item);
-                        listOfTestRequests.Add(request.Tests.Test);
+                        // var request = TestRequestXMLParser.TestRequest.TestRequest.TestRequestParseFile(item);
+
+                      //  string text = System.IO.File.ReadAllText(item);
+
+                        //this works homie
+                        XmlSerializer ser = new XmlSerializer(typeof(l2l1testreq));
+                      //  Cars cars;
+                        using (XmlReader reader = XmlReader.Create(item))
+                        {
+                            var test = (l2l1testreq)ser.Deserialize(reader);
+
+
+                            var ddt = "";
+                        }
+
+
+
+                        // var f = Welcome1.FromJson(text);
+                        string t = "";
+                        // using System.Xml.Serialization;
+                        //using (FileStream stream = new FileStream(item, FileMode.Open))
+                        //{
+
+                         //   var xsz = new XmlSerializer(typeof(L2l1testreq));
+                        //    var request = (L2l1testreq)xsz.Deserialize(stream);
+
+
+                        //  }
+                      //  listOfTestRequests.Add(request.Tests.Test);
+
                     }
                     catch (Exception err)
                     {
@@ -113,7 +152,7 @@ namespace TestRequestUI
             }
         }
 
-        private void LoadTestRequestSafe(Test test)
+        private void LoadTestRequestSafe(l2l1testreq test)
         {
             if (this.InvokeRequired)
             {
@@ -123,23 +162,33 @@ namespace TestRequestUI
             }
             else
             {
-               //load all items for UI consumption here
+                //load all items for UI consumption here
+
+                //when null, just clear forms
+                if (test == null)
+                {
+                    testRequestNumberTextBox.Text = "";
+                    testCodeTextBox.Text = "";
 
 
+
+
+                }
+                else 
+                {
+                    testRequestNumberTextBox.Text = test.tests.test.test_number;
+                   // testCodeTextBox.Text = test.TestCode;
+                }
             }
         }
 
 
-        private void loadTestRequest(Test test)
+        private void loadTestRequest(l2l1testreq test)
         {
             //allow only one running instance at a time.
             lock (_loadLock)
             {
-                if(test != null)
-                {
-                    LoadTestRequestSafe(test);
-
-                }
+                LoadTestRequestSafe(test);
             }
         }
     }
