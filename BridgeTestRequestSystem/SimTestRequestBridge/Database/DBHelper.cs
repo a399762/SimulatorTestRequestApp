@@ -25,7 +25,7 @@ namespace SimBridge.Database
             
             return true;
         }
-
+            
         /// <summary>
         /// get a list of all current Test requests
         /// </summary>
@@ -33,7 +33,13 @@ namespace SimBridge.Database
         public static List<TestRequest> GetTestRequests(SimBridgeDataContext context)
         {
             List<TestRequest> result = null;
-            result = context.TestRequests.ToList();
+            result = context.TestRequests.Include(i => i.Car).ToList();
+            return result;
+        }
+
+        internal static TestRequest GetTestRequest(SimBridgeDataContext context,string testRequestID)
+        {
+            TestRequest result = context.TestRequests.Include(i => i.Car).FirstOrDefault(i=>i.TestRequestID == testRequestID);
             return result;
         }
 
@@ -62,7 +68,9 @@ namespace SimBridge.Database
 
         public static List<Run> GetTestRequestRuns(string testRequestID, SimBridgeDataContext context)
         {
-           return context.Runs.Include(i =>i.LFTire).Include(i => i.LRTire).Include(i => i.RRTire).Include(i => i.RFTire).Where(i => i.TestRequestID == testRequestID).ToList();
+           return context.Runs.Include(i=>i.TireModelType).Include(i =>i.LFTire).Include(i => i.LRTire).Include(i => i.RRTire).Include(i => i.RFTire).Where(i => i.TestRequestID == testRequestID).ToList();
         }
+
+   
     }
 }

@@ -14,15 +14,20 @@ namespace SimBridge.Database
         public DbSet<TestRequest> TestRequests { get; set; }
         public DbSet<Run> Runs { get; set; }
         public DbSet<Tire> Tires { get; set; }
+        public DbSet<TireType> TireTypes { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            ////Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-            optionsBuilder.UseSqlite(
-                "Data Source=products.db");
+            optionsBuilder.UseSqlite("Data Source=SimBridgeData.db");
             optionsBuilder.UseLazyLoadingProxies();
-           
             base.OnConfiguring(optionsBuilder);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<TireType>().HasData(new TireType{TireTypeID = 1,Description = "CD Tire"});
+            modelBuilder.Entity<TireType>().HasData(new TireType { TireTypeID = 2, Description = "MF Tire" });
+            modelBuilder.Entity<TireType>().HasData(new TireType { TireTypeID = 3, Description = "MF Swift" });
         }
     }
 
@@ -34,6 +39,8 @@ namespace SimBridge.Database
         public string Description { get; set; }
 
         public virtual Car Car { get; set; }
+
+        public string SendFilePath { get; set; }
 
         public string Status { get; set; }
 
@@ -61,27 +68,28 @@ namespace SimBridge.Database
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int RunID { get; set; }
 
-        [Required]
         [StringLength(100)]
         public string Location { get; set; }
 
-        [Required]
         [StringLength(100)]
         public string Maneuver { get; set; }
 
-        [Required]
+        public virtual int TireTypeID { get; set; }
+        public virtual TireType TireModelType { get; set; }
+
         public virtual Tire LFTire { get; set; }
-        [Required]
+     
         public virtual Tire RFTire { get; set; }
-        [Required]
+      
         public virtual Tire LRTire { get; set; }
-        [Required]
+      
         public virtual Tire RRTire { get; set; }
 
         public string TestRequestID { get; set; }
 
         [StringLength(300)]
         public string GeneratedRunSendFilePath { get; set; }
+
     }
 
     public class Tire
@@ -96,5 +104,14 @@ namespace SimBridge.Database
         public string Construction { get; set; }
 
         public double Pressure { get; set; }
+    }
+
+    public class TireType
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int TireTypeID { get; set; }
+
+        public string Description { get; set; }
     }
 }
