@@ -13,20 +13,28 @@
 
 
     <Window.Resources>
-        <Style x:Key="NoExpanderHeaderStyle" TargetType="ToggleButton">
-            <Setter Property="Visibility" Value="Collapsed"/>
+
+
+        <Style x:Key="MyBorderStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="CornerRadius" Value="3" />
         </Style>
+
+        <vm1:FileFromPathConverter x:Key="FileFromPathConverter" />
+        
+        
     </Window.Resources>
     
     <DockPanel>
         <ToolBarTray DockPanel.Dock="Top" >
             <ToolBar>
                 <Button Command="{Binding NewCommand}"  Content="New" />
-                <Button Command="{Binding DeleteCommand}"  Content="Delete" />
+                <Button  Content="Delete" />
                 <Button Command="{Binding RefreshCommand}" Content="Refresh" />
                 <Button Command="{Binding SaveCommand}" Content="Save" />
                 <Button Command="{Binding StageCommand}" Content="Stage" />
-                <Button Command="{Binding ImportCommand}" Content="Import" />
+                <Button  Content="Import" />
 
             </ToolBar>
         </ToolBarTray>
@@ -42,8 +50,8 @@
 
             <Expander Grid.Column="0"  Background="Gray" FlowDirection="RightToLeft" ExpandDirection="Right" IsExpanded="True" >
                 <DockPanel Background="LightGray" FlowDirection="LeftToRight" >
-                    <GroupBox DockPanel.Dock="Top" Header="Test Requests - In Process"   >
-                        <DataGrid Margin="5" FlowDirection="LeftToRight" MinWidth="200" MinHeight="300"  Background="LightGray"  AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True" SelectionMode="Single"  SelectedItem="{Binding CurrentSelectedTestRequest}" ItemsSource="{Binding Path=TestRequests, Mode=OneWay, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}"  >
+                    <GroupBox DockPanel.Dock="Top" Header="Test Requests - In Process" >
+                        <DataGrid Name="inProcessTestRequestDataGrid" Margin="5" FlowDirection="LeftToRight" MinWidth="200" MinHeight="300"   Background="LightGray"  AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True" SelectionMode="Single"  SelectedItem="{Binding CurrentSelectedTestRequest}" ItemsSource="{Binding Path=TestRequests, Mode=OneWay, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}"  >
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Binding="{Binding Path=TestRequestID}"/>
                                 <DataGridTextColumn Header="Car" Binding="{Binding Path=Car.Description}"/>
@@ -51,13 +59,7 @@
                             </DataGrid.Columns>
                         </DataGrid>
                     </GroupBox>
-                    <GroupBox DockPanel.Dock="Top"  Header="Test Requests - Recently Completed"  >
-                        <DataGrid Margin="5" MinWidth="200"  MinHeight="300"   Background="LightGray"  AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True" SelectionMode="Single"  SelectedItem="{Binding CurrentTestRequest}" ItemsSource="{Binding Path=CompletedTestRequests, Mode=OneWay, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}"  >
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Name" Binding="{Binding Path=TestRequestID}"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </GroupBox>
+                   
                 </DockPanel>
             </Expander>
 
@@ -75,32 +77,24 @@
                     <GroupBox Header="Test Request - General Information"  Grid.Column="0"  >
                         <TabControl Margin="5" Background="AliceBlue">
                             <TabItem Header="Information">
-
                                 <DockPanel Height="Auto" Name="stackPanel1" Width="Auto" LastChildFill="True" Margin="5">
                                     <Label DockPanel.Dock="Top">Request Name:</Label>
                                     <TextBlock  DockPanel.Dock="Top" HorizontalAlignment="Stretch"  Text="{Binding CurrentWorkingTestRequest.TestRequestID}" Background="White"  />
-
                                     <Label DockPanel.Dock="Top">Request Vehicle:</Label>
                                     <TextBlock  DockPanel.Dock="Top" HorizontalAlignment="Stretch"  Text="{Binding CurrentWorkingTestRequest.Car.Description}" Background="White"  />
-
                                     <Label DockPanel.Dock="Top" Grid.Column="0" Grid.Row="0" >Request Description:</Label>
                                     <TextBlock  HorizontalAlignment="Stretch"  Text="{Binding CurrentWorkingTestRequest.Description}" Background="White"  />
-
-
                                 </DockPanel>
-
                             </TabItem>
-                            <TabItem Header="Vehicle Setup" Height="22"  VerticalAlignment="Top">
-
+                            <TabItem Header="Vehicle Setup">
                                 <StackPanel Margin="10">
                                     <Label DockPanel.Dock="Top">Request Vehicle:</Label>
                                     <TextBlock  DockPanel.Dock="Top" HorizontalAlignment="Stretch"  Text="{Binding CurrentWorkingTestRequest.Car.Description}" Background="White"  />
                                     <Label >Vehicle Send File</Label>
                                     <DockPanel  LastChildFill="True" >
                                         <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center" Click="Button_ClickAsync"/>
-                                        <TextBlock HorizontalAlignment="Stretch" Margin="5,1,1,1" Text="{Binding CurrentWorkingTestRequest.SendFilePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
+                                        <TextBlock HorizontalAlignment="Stretch" Margin="5,1,1,1" Text="{Binding CurrentWorkingTestRequest.SendFilePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
                                     </DockPanel >
-
                                 </StackPanel>
                             </TabItem>
                             <TabItem Header="OTHER??" >
@@ -110,7 +104,6 @@
                             </TabItem>
                         </TabControl>
                     </GroupBox>
-                    
                     <GroupBox Header="Test Request - Runs" Grid.Column="1"  >
                         <DockPanel Background="LightGray" Grid.Column="2" Margin="5"  IsEnabled="{Binding CurrentWorkingTestRequest, TargetNullValue=False}">
                             <ToolBarTray DockPanel.Dock="Top" >
@@ -119,8 +112,17 @@
                                     <Button Command="{Binding DeleteRunCommand}"  Content="Delete" />
                                 </ToolBar>
                             </ToolBarTray>
-
-                            <DataGrid Background="LightGray"  AutoGenerateColumns="True" HeadersVisibility="Column" IsReadOnly="True"  SelectedItem="{Binding CurrentTestRequestRun}" ItemsSource="{Binding CurrentTestRequestRuns}" >
+                            <DataGrid Background="LightGray"  AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True"  SelectedItem="{Binding CurrentTestRequestRun}"  ItemsSource="{Binding CurrentWorkingTestRequest.Runs}" >
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Run#" Binding="{Binding this.RunNumber}"/>
+                                    <DataGridTextColumn Header="Location" Binding="{Binding RunLocation.Description}"/>
+                                    <DataGridTextColumn Header="Tire Model" Binding="{Binding TireModelType.Description}"/>
+                                    <DataGridTextColumn Header="Car" Binding="{Binding Path=Maneuver}"/>
+                                    <DataGridTextColumn Header="RF Tire" Binding="{Binding RFTire.Construction}"/>
+                                    <DataGridTextColumn Header="LF Tire" Binding="{Binding LFTire.Construction}"/>
+                                    <DataGridTextColumn Header="RR Tire" Binding="{Binding RRTire.Construction}"/>
+                                    <DataGridTextColumn Header="RF Tire" Binding="{Binding RFTire.Construction}"/>
+                                </DataGrid.Columns>
                             </DataGrid>
                         </DockPanel>
                     </GroupBox>
@@ -128,58 +130,67 @@
                 <DockPanel
                     Background="AliceBlue"
                     Height="Auto"            
-                    
                     Margin="10">
-
                     <GroupBox   IsEnabled="{Binding CurrentTestRequestRun, TargetNullValue=False}"  Header="Test Request - Selected Run Information" Grid.Column="1"  >
-
-
-                        <TabControl Margin="5" Background="AliceBlue">
-                            <TabItem Header="Tires">
-
-                                <StackPanel Margin="10" Grid.Column="0">
-                                    <!--SelectedValue="{Binding Path=CurrentTestRequestRun.TireModelType.TireTypeID}"-->
-                                    <Label >Tire Model Type:</Label>
-                                    <ComboBox Name="cbTestAccountManagers"
-                                          ItemsSource="{Binding TireTypes}"
+                        <DockPanel Margin="5">
+                            <Label DockPanel.Dock="Top"  Margin="10,0,0,0">Location:</Label>
+                            <ComboBox DockPanel.Dock="Top" 
+                                ItemsSource="{Binding Locations}"
+                                DisplayMemberPath="Description"
+                                SelectedValuePath="LocationID"
+                                SelectedItem="{Binding Path=CurrentTestRequestRun.RunLocation}"
+                                HorizontalAlignment="Left" Margin="10,0,0,0"
+                                Width="250"></ComboBox>
+                            
+                            <TabControl Background="AliceBlue" Margin="10">
+                                <TabItem Header="Tires">
+                                    <StackPanel Margin="10" Grid.Column="0">
+                                       
+                                        <Label >Tire Model Type:</Label>
+                                        <ComboBox ItemsSource="{Binding TireTypes}"
                                           DisplayMemberPath="Description"
                                           SelectedValuePath="TireTypeID"
-                                          SelectedValue="{Binding Path=CurrentTestRequestRun.TireTypeID}"
-                                              
+                                          SelectedItem="{Binding Path=CurrentTestRequestRun.TireModelType}"
                                           HorizontalAlignment="Left"
                                           Width="250"></ComboBox>
-                                    
-                                    <Label >Left Front Tire:</Label>
 
-                                    <DockPanel  LastChildFill="True" >
-                                        <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                                        <TextBlock HorizontalAlignment="Stretch" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.LFTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
-                                    </DockPanel >
+                                        <Label>Generated Send files will be modifed to correctly support Tire Type selected.</Label>
+                                        
+                                        
+                                        
+                                        <Label >Left Front Tire:</Label>
 
-                                    <Label Grid.Column="0" Grid.Row="0" >Right Front Tire:</Label>
-                                    <DockPanel LastChildFill="True" >
-                                        <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                                        <TextBlock HorizontalAlignment="Stretch" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.LFTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
-                                    </DockPanel >
-                                    
-                                    
-                                    <Label Grid.Column="0" Grid.Row="0" >Left Rear Tire:</Label>
-                                    <DockPanel  LastChildFill="True" >
-                                        <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                                        <TextBlock HorizontalAlignment="Stretch" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.RFTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
-                                    </DockPanel >
-                                    
-                                    <Label Grid.Column="0" Grid.Row="0" >Right Rear Tire:</Label>
-                                    <DockPanel LastChildFill="True" >
-                                        <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                                        <TextBlock HorizontalAlignment="Stretch" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.RRTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
-                                    </DockPanel >
+                                        <DockPanel  LastChildFill="True" >
+                                            <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                            <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.LFTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
+                                        </DockPanel >
 
-                                </StackPanel>
-                            </TabItem>
-                            <TabItem Header="Telemetry Logs" />
-                            <TabItem Header="Comments" />
-                        </TabControl>
+                                        <Label Grid.Column="0" Grid.Row="0" >Right Front Tire:</Label>
+                                        <DockPanel LastChildFill="True" >
+                                            <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                            <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.LFTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
+                                        </DockPanel >
+
+
+                                        <Label Grid.Column="0" Grid.Row="0" >Left Rear Tire:</Label>
+                                        <DockPanel  LastChildFill="True" >
+                                            <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                            <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.RFTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
+                                        </DockPanel >
+
+                                        <Label Grid.Column="0" Grid.Row="0" >Right Rear Tire:</Label>
+                                        <DockPanel LastChildFill="True" >
+                                            <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                            <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.RRTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
+                                        </DockPanel >
+                                        <Button Command="{Binding GenerateSendFile}" Margin="10" Width="300" Content="Generate Send File" />
+                                    </StackPanel>
+                                </TabItem>
+                                <TabItem Header="Telemetry Logs" />
+                                <TabItem Header="Comments" />
+                            </TabControl>
+                        </DockPanel>
+                        
                     </GroupBox>
                 </DockPanel>
             </DockPanel>

@@ -109,7 +109,7 @@ namespace SimBridge
 
                     string testTire = "mdids://VW_Golf8_150cv_eTSI_copy2/tires.tbl/CDTire/MOD1_GY_EFG_PERF_20555R16_91V_HG9535_RTmodel_implicit_44MP_v3.tir";
 
-                    //SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fl_tire_property_file, testTire, doc);
+                    SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fl_tire_property_file, testTire, doc);
                     //SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fr_tire_property_file, testTire, doc);
                     //SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rl_tire_property_file, testTire, doc);
                     //SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rr_tire_property_file, testTire, doc);

@@ -41,7 +41,7 @@ namespace SimTestRequestBridge
 
             if (result == true)
             {
-                string filename = dlg.FileName;
+               string filename = dlg.FileName;
 
                 //now take file and pass to VM, to stage it. 
                bool stageResult = await viewModel.StageVehicleSendFileAsync(filename);
@@ -51,7 +51,6 @@ namespace SimTestRequestBridge
                     //elaborate...
                     MessageBox.Show("Error Staging Send File");
                 }
-
             }
         }
 

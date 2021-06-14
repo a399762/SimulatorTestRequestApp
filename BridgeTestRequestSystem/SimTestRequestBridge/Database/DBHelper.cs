@@ -39,7 +39,8 @@ namespace SimBridge.Database
 
         internal static TestRequest GetTestRequest(SimBridgeDataContext context,string testRequestID)
         {
-            TestRequest result = context.TestRequests.Include(i => i.Car).FirstOrDefault(i=>i.TestRequestID == testRequestID);
+            TestRequest result = context.TestRequests.Include(i=>i.Runs).Include("Runs.RunLocation").Include("Runs.TireModelType").Include("Runs.LFTire").Include("Runs.RFTire").Include("Runs.LRTire").Include("Runs.RRTire")
+                .Include(i => i.Car).FirstOrDefault(i=>i.TestRequestID == testRequestID);
             return result;
         }
 
