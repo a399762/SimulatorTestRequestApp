@@ -40,10 +40,10 @@ namespace SimBridge.Database
             modelBuilder.Entity<Location>().HasData(new Location { LocationID = 4, Description = "VDA" });
 
             modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Race car" });
-            modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Jeep Grand Cherokee wk18" });
-            modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Golf 8" });
-            modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Sedan Car" });
-            modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Compact Car" });
+            modelBuilder.Entity<Car>().HasData(new Car { CarID = 2, Description = "Jeep Grand Cherokee wk18" });
+            modelBuilder.Entity<Car>().HasData(new Car { CarID = 3, Description = "Golf 8" });
+            modelBuilder.Entity<Car>().HasData(new Car { CarID = 4, Description = "Sedan Car" });
+            modelBuilder.Entity<Car>().HasData(new Car { CarID = 5, Description = "Compact Car" });
         }
     }
 

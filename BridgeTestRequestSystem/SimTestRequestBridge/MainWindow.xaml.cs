@@ -1,5 +1,6 @@
 ﻿using SimTestRequestBridge.ViewModels;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -28,7 +29,15 @@ namespace SimTestRequestBridge
         {
             InitializeComponent();
             viewModel = this.DataContext as MainWindowViewModel;
+
+         //   var myListCollectionView = (ListCollectionView)CollectionViewSource.GetDefaultView(Filters);
+          //  myListCollectionView.CustomSort = new MyComparer();
+          //  myListCollectionView.GroupDescriptions.Add(new PropertyGroupDescription("Category"));
+
+           // MyListCollectionView = myListCollectionView; // Which is binded by DG.ItemsSource
+
         }
+
 
         private async void Button_ClickAsync(object sender, RoutedEventArgs e)
         {
@@ -70,6 +79,41 @@ namespace SimTestRequestBridge
             {
 
             }
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            viewModel.OrderSelectedRunUp();
+            var r = runDataGrid.Items;
+        
+
+
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            CollectionViewSource source = (CollectionViewSource)(this.Resources["CurrentWorkingRunsCollectionView"]);
+            ListCollectionView view = (ListCollectionView)source.View;
+            view.CustomSort = new MyComparer();
+        }
+    }
+
+    public class MyComparer : IComparer
+    {
+        public int Compare(object x, object y)
+        {
+            var a = x as SimBridge.Database.Run;
+            var b = y as SimBridge.Database.Run;
+
+            if (a == null || b == null)
+                throw new ArgumentException("Not My CustomViewEntityViewModel");
+
+            if (a.RunNumber > b.RunNumber)  // I added property SortOrder to my viewmodel
+                return 1;
+            if (a.RunNumber == b.RunNumber)
+                return 0;
+
+            return -1;
         }
     }
 }

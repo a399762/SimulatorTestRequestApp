@@ -26,23 +26,27 @@ namespace SimTestRequestBridge.ViewModels
         public event PropertyChangedEventHandler PropertyChanged;
         private ObservableCollection<TestRequest> testRequests = new ObservableCollection<TestRequest>();
         private ObservableCollection<TestRequest> completedTestRequests = new ObservableCollection<TestRequest>();
-       
+        // Gets or sets the CollectionViewSource
+    
+        // Gets or sets the ObservableCollection
+        public ObservableCollection<Run> Collection { get; set; }
+
+
 
         private ObservableCollection<TireType> tireTypes;
         private ObservableCollection<Location> locations; 
 
-
         //one to keep track of what is selected, the other to actively modify
         private TestRequest currentSelectedTestRequest;
         private TestRequest currentWorkingTestRequest;
-
         private Run currentTestRequestRun;
-
         private SimBridgeDataContext currentWorkingContext;
 
 
         public MainWindowViewModel()
         {
+
+
             LoadTireTypesAsync();
             LoadLocationsAsync();
             LoadTestRequestsAsync();
@@ -165,7 +169,6 @@ namespace SimTestRequestBridge.ViewModels
             }
         }
 
-
         public Task LoadTestRequestsAsync()
         {
             return Task.Run(() => LoadTestRequests());
@@ -202,7 +205,6 @@ namespace SimTestRequestBridge.ViewModels
             {
                 string g = "";
             }
-
         }
         private void LoadTestRequest(string testRequestID)
         {
@@ -237,7 +239,6 @@ namespace SimTestRequestBridge.ViewModels
                         client.UploadFile("ftp://example.com/remote/folder/" + Path.GetFileName(file), file);
                     }
                 }
-
             }
             catch (Exception err)
             {
@@ -266,9 +267,6 @@ namespace SimTestRequestBridge.ViewModels
             String rawSendFileXML = File.ReadAllText(originalSendFile);
             XDocument doc = XDocument.Parse(rawSendFileXML);
 
-            //            var tirPath = currentTestRequestRun.LFTire.TirePath;
-          
-            //replacethis..
             string testTire = "mdids://VW_Golf8_150cv_eTSI_copy2/tires.tbl/CDTire/MOD1_GY_EFG_PERF_20555R16_91V_HG9535_RTmodel_implicit_44MP_v3.tir";
 
             SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fl_tire_property_file, testTire, doc);
@@ -276,21 +274,13 @@ namespace SimTestRequestBridge.ViewModels
             SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rl_tire_property_file, testTire, doc);
             SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rr_tire_property_file, testTire, doc);
 
-            //var stagingFolderPath = GetStagingFolderForTestRequest(CurrentWorkingTestRequest.TestRequestID);
-
             //place it next to the original send file for now
-
             var path = Path.GetDirectoryName(originalSendFile);
 
             //where do we want to save...
             var runSendFilePath = path + @"\" + CurrentWorkingTestRequest.Car.Description + "_" + currentTestRequestRun.LocationID + "_" + currentTestRequestRun.LFTire.Construction + "_" + currentTestRequestRun.RFTire.Construction + "_" + currentTestRequestRun.LRTire.Construction + "_" + currentTestRequestRun.RRTire.Construction + ".xml";
-
-            //  string newfile = Path.GetDirectoryName(openFileDialog.FileName) + @"\" + Path.GetFileNameWithoutExtension(openFileDialog.FileName) + "_new.xml";
-
-             doc.Save(runSendFilePath);
-        
+            doc.Save(runSendFilePath);
         }
-
 
         private void AddNewRunToCurrentTestRequest()
         {
@@ -319,17 +309,56 @@ namespace SimTestRequestBridge.ViewModels
                 run.RFTire = rf;
                 run.RRTire = rr;
                 run.LRTire = lr;
-
                 run.TireModelType = currentWorkingContext.TireTypes.FirstOrDefault(i => i.TireTypeID == 1);
                 run.RunLocation = currentWorkingContext.Locations.FirstOrDefault(i => i.LocationID == 1);
-
                 run.Maneuver = "Drive fast";
-             
+
+                //get next number to use based on existing - 1 based
+                var newNumber = CurrentWorkingTestRequest.Runs.Count() + 1;
+                run.RunNumber = newNumber;
+
                 CurrentWorkingTestRequest.Runs.Add(run);
             }
-
         }
 
+        void MoveAndUpdateOrder(ICollection<Run> list, Run item, int positionToInsert)
+        {
+            var collectionView = CollectionViewSource.GetDefaultView(list);
+            collectionView.SortDescriptions.Add(new SortDescription("RunNumber", ListSortDirection.Ascending));
+
+
+            if (positionToInsert >   0)
+            {
+
+             
+
+
+                // Order elements
+                var ordered_list = list.OrderBy(a => a.RunNumber).ToList();
+
+                // Remove and insert at the proper position
+                ordered_list.Remove(item);
+                ordered_list.Insert(positionToInsert - 1, item);
+
+                // Update the Order properties according to it's current index +1
+                for (int i = 0; i < ordered_list.Count; i++)
+                    ordered_list[i].RunNumber = i + 1;
+            }
+        }
+
+        private ICommand _orderRunUpCommand;
+        public ICommand OrderRunUpCommand
+        {
+            get
+            {
+                return _orderRunUpCommand ?? (_orderRunUpCommand = new CommandHandler(() => OrderSelectedRunUp(), () => ValidateTestRequestRun));
+            }
+        }
+
+        public void OrderSelectedRunUp()
+        {
+            MoveAndUpdateOrder(currentWorkingTestRequest.Runs, currentTestRequestRun, currentTestRequestRun.RunNumber - 1);
+        }
 
         //ICommand button callbacks
         private ICommand _generateSendFile;
@@ -350,7 +379,6 @@ namespace SimTestRequestBridge.ViewModels
             }
         }
 
-    
 
         private ICommand _stageCommand;
         public ICommand StageCommand
@@ -391,32 +419,16 @@ namespace SimTestRequestBridge.ViewModels
         {
             get
             {
-              
                 return currentWorkingContext.ChangeTracker.Entries().Any(e => e.State == EntityState.Modified || e.State == EntityState.Added || e.State == EntityState.Deleted);
             }
         }
-
 
         public void testGenerateNewTestRequest()
         {
             //check if there is a car use first, else create then use
             using (SimBridgeDataContext context = new SimBridgeDataContext())
             {
-
-                var cars = DBHelper.GetCars(context);
-
-                Car car;
-                if (cars != null && cars.Count == 0)
-                {
-
-                    car = new Car();
-                    car.Description = "Test Car";
-                    DBHelper.InsertCar(car, context);
-                }
-                else
-                {
-                    car = cars[0];
-                }
+                var car = DBHelper.GetCars(context)[0];
 
                 TestRequest testRequest = new TestRequest();
                 testRequest.Car = car;
