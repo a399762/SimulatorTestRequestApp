@@ -6,15 +6,15 @@
         xmlns:local="clr-namespace:SimTestRequestBridge"
         xmlns:vm1="clr-namespace:SimTestRequestBridge.ViewModels" 
         xmlns:clr="clr-namespace:System;assembly=System.Runtime" 
-        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase" xmlns:controls="clr-namespace:SimTestRequestBridge.Controls"
         mc:Ignorable="d"
-        Title="Sim Test Request Bridge" Height="759" Width="1174" Loaded="Window_Loaded">
+        Title="Sim Test Request Bridge" Height="759" Width="1174" >
     <Window.DataContext>
         <vm1:MainWindowViewModel></vm1:MainWindowViewModel>
     </Window.DataContext>
 
     <Window.Resources>
-        <CollectionViewSource x:Key="CurrentWorkingRunsCollectionView"  Source="{Binding CurrentWorkingTestRequest.Runs, UpdateSourceTrigger=PropertyChanged}"
+        <CollectionViewSource x:Key="CurrentWorkingRunsCollectionView"  Source="{Binding CurrentWorkingTestRequestRuns}"
                           IsLiveSortingRequested="True">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="RunNumber" Direction="Ascending" />
@@ -31,15 +31,15 @@
         </Style>
 
         <vm1:FileFromPathConverter x:Key="FileFromPathConverter" />
-        
-        
+
+        <SolidColorBrush x:Key="clBr" Color="LightBlue" />
     </Window.Resources>
     
     <DockPanel>
         <ToolBarTray DockPanel.Dock="Top"  >
             <ToolBar>
                 <Button Command="{Binding NewCommand}"  Content="New" />
-                <Button  Content="Delete" />
+                <Button Command="{Binding DeleteTestRequestCommand}"  Content="Delete" />
                 <Button Command="{Binding RefreshCommand}" Content="Refresh" />
                 <Button Command="{Binding SaveCommand}" Content="Save" />
                 <Button Command="{Binding StageCommand}" Content="Stage" />
@@ -66,6 +66,9 @@
                                 <DataGridTextColumn Header="Car" Binding="{Binding Path=Car.Description}"/>
                                 <DataGridTextColumn Header="Submitted" Binding="{Binding Path=RecievedTime}" SortDirection="Ascending"/>
                             </DataGrid.Columns>
+                            <DataGrid.Resources>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="DarkGray"/>
+                            </DataGrid.Resources>
                         </DataGrid>
                     </GroupBox>
                    
@@ -73,7 +76,6 @@
             </Expander>
 
             <DockPanel Background="LightGray" Grid.Column="2"  IsEnabled="{Binding CurrentWorkingTestRequest, TargetNullValue=False}">
-
                 <Grid DockPanel.Dock="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -82,7 +84,6 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="300" />
                     </Grid.RowDefinitions>
-
                     <GroupBox Header="Test Request - General Information"  Grid.Column="0"  >
                         <TabControl Margin="5" Background="AliceBlue">
                             <TabItem Header="Information">
@@ -118,15 +119,27 @@
                             <ToolBarTray DockPanel.Dock="Top" >
                                 <ToolBar>
                                     <Button Command="{Binding NewRunCommand}"  Content="New" />
-                                    <Button Command="{Binding DeleteRunCommand}"  Content="Delete" />
-                                    <Button  Content="Up" Click="Button_Click_1" />
+                                    <Button Command="{Binding DeleteTestRequestRunCommand}"  Content="Delete" />
+                                    <Button Command="{Binding OrderRunUpCommand}" Content="Up" />
                                     <Button Command="{Binding OrderRunDownCommand}"  Content="Down" />
                                 </ToolBar>
                             </ToolBarTray>
-                            <DataGrid Background="LightGray" Name="runDataGrid"  AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True"  SelectedItem="{Binding CurrentTestRequestRun}"  ItemsSource="{Binding Source={StaticResource CurrentWorkingRunsCollectionView}, UpdateSourceTrigger=PropertyChanged}" >
+                            <controls:CustomDataGrid Background="LightGray" x:Name="runDataGrid"  AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True"  SelectedItem="{Binding CurrentTestRequestRun}" ItemsSource="{Binding Source={StaticResource CurrentWorkingRunsCollectionView}}">
                                 <!--ItemsSource="{Binding CurrentWorkingTestRequest.Runs}"-->
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Run#" Binding="{Binding RunNumber}" />
+                                <controls:CustomDataGrid.Columns>
+                                    <DataGridTextColumn Header="Run#" Binding="{Binding RunNumber}" SortDirection="Ascending" >
+                                        <DataGridTextColumn.CellStyle>
+                                            <Style TargetType="DataGridCell">
+                                                <Setter Property="Background" 
+                                                    Value="{StaticResource clBr}" />
+                                            </Style>
+                                        </DataGridTextColumn.CellStyle>
+                                        <DataGridTextColumn.ElementStyle>
+                                            <Style TargetType="{x:Type TextBlock}">
+                                                <Setter Property="HorizontalAlignment" Value="Center" />
+                                            </Style>
+                                        </DataGridTextColumn.ElementStyle>
+                                    </DataGridTextColumn>
                                     <DataGridTextColumn Header="Location" Binding="{Binding RunLocation.Description}"/>
                                     <DataGridTextColumn Header="Tire Model" Binding="{Binding TireModelType.Description}"/>
                                     <DataGridTextColumn Header="Car" Binding="{Binding Path=Maneuver}"/>
@@ -134,8 +147,11 @@
                                     <DataGridTextColumn Header="LF Tire" Binding="{Binding LFTire.Construction}"/>
                                     <DataGridTextColumn Header="RR Tire" Binding="{Binding RRTire.Construction}"/>
                                     <DataGridTextColumn Header="RF Tire" Binding="{Binding RFTire.Construction}"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
+                                </controls:CustomDataGrid.Columns>
+                                <controls:CustomDataGrid.Resources>
+                                    <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="DarkGray"/>
+                                </controls:CustomDataGrid.Resources>
+                            </controls:CustomDataGrid>
                         </DockPanel>
                     </GroupBox>
                 </Grid>
@@ -186,22 +202,20 @@
 
                                         <DockPanel  LastChildFill="True" >
                                             <Label DockPanel.Dock="Left">Right Front Tire:</Label>
-                                            <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestRun.LFTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                            <Label DockPanel.Dock="Left" Margin="10,0,0,0"  Content="{Binding CurrentTestRequestRun.LFTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
+                                            <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestRun.RFTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
+                                            <Label DockPanel.Dock="Left" Margin="10,0,0,0"  Content="{Binding CurrentTestRequestRun.RFTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
                                             <Label DockPanel.Dock="Left">psi</Label>
-
                                         </DockPanel >
                                         <DockPanel LastChildFill="True" >
                                             <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                                            <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.LFTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
-                                                                             
+                                            <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestRun.RFTire.TirePath, UpdateSourceTrigger=PropertyChanged}" Background="White"  />
                                         </DockPanel >
 
                                         <DockPanel  LastChildFill="True" >
                                             <Label DockPanel.Dock="Left">Left Rear  Tire:</Label>
-                                            <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestRun.LFTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
+                                            <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestRun.LRTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
 
-                                            <Label DockPanel.Dock="Left" Margin="10,0,0,0"  Content="{Binding CurrentTestRequestRun.LFTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
+                                            <Label DockPanel.Dock="Left" Margin="10,0,0,0"  Content="{Binding CurrentTestRequestRun.LRTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
                                             <Label DockPanel.Dock="Left">psi</Label>
                                         </DockPanel >
                                 
@@ -212,8 +226,8 @@
 
                                         <DockPanel  LastChildFill="True" >
                                             <Label DockPanel.Dock="Left">Right Rear  Tire:</Label>
-                                            <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestRun.LFTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                            <Label DockPanel.Dock="Left" Margin="10,0,0,0"  Content="{Binding CurrentTestRequestRun.LFTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
+                                            <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestRun.RRTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
+                                            <Label DockPanel.Dock="Left" Margin="10,0,0,0"  Content="{Binding CurrentTestRequestRun.RRTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
                                             <Label DockPanel.Dock="Left">psi</Label>
                                         </DockPanel >
                                  

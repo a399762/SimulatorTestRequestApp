@@ -26,12 +26,7 @@ namespace SimTestRequestBridge.ViewModels
         public event PropertyChangedEventHandler PropertyChanged;
         private ObservableCollection<TestRequest> testRequests = new ObservableCollection<TestRequest>();
         private ObservableCollection<TestRequest> completedTestRequests = new ObservableCollection<TestRequest>();
-        // Gets or sets the CollectionViewSource
-    
-        // Gets or sets the ObservableCollection
-        public ObservableCollection<Run> Collection { get; set; }
-
-
+        private ObservableCollection<Run> currentWorkingTestRequestRuns = new ObservableCollection<Run>();
 
         private ObservableCollection<TireType> tireTypes;
         private ObservableCollection<Location> locations; 
@@ -39,14 +34,17 @@ namespace SimTestRequestBridge.ViewModels
         //one to keep track of what is selected, the other to actively modify
         private TestRequest currentSelectedTestRequest;
         private TestRequest currentWorkingTestRequest;
+      
         private Run currentTestRequestRun;
         private SimBridgeDataContext currentWorkingContext;
 
 
         public MainWindowViewModel()
         {
+            this.CurrentWorkingTestRequestRuns = new ObservableCollection<Run>();
 
 
+     
             LoadTireTypesAsync();
             LoadLocationsAsync();
             LoadTestRequestsAsync();
@@ -211,9 +209,8 @@ namespace SimTestRequestBridge.ViewModels
             try
             {
                 currentWorkingContext = new SimBridgeDataContext();
-               
                 CurrentWorkingTestRequest = DBHelper.GetTestRequest(currentWorkingContext, testRequestID);
-                string t = "";
+                CurrentWorkingTestRequestRuns = new ObservableCollection<Run>(CurrentWorkingTestRequest.Runs);
             }
             catch (Exception err)
             {
@@ -311,28 +308,21 @@ namespace SimTestRequestBridge.ViewModels
                 run.LRTire = lr;
                 run.TireModelType = currentWorkingContext.TireTypes.FirstOrDefault(i => i.TireTypeID == 1);
                 run.RunLocation = currentWorkingContext.Locations.FirstOrDefault(i => i.LocationID == 1);
-                run.Maneuver = "Drive fast";
+                run.Maneuver = "Slalom";
 
                 //get next number to use based on existing - 1 based
-                var newNumber = CurrentWorkingTestRequest.Runs.Count() + 1;
+                var newNumber = currentWorkingTestRequestRuns.Count() + 1;
                 run.RunNumber = newNumber;
 
                 CurrentWorkingTestRequest.Runs.Add(run);
+                currentWorkingTestRequestRuns.Add(run);
             }
         }
 
         void MoveAndUpdateOrder(ICollection<Run> list, Run item, int positionToInsert)
         {
-            var collectionView = CollectionViewSource.GetDefaultView(list);
-            collectionView.SortDescriptions.Add(new SortDescription("RunNumber", ListSortDirection.Ascending));
-
-
             if (positionToInsert >   0)
             {
-
-             
-
-
                 // Order elements
                 var ordered_list = list.OrderBy(a => a.RunNumber).ToList();
 
@@ -345,6 +335,53 @@ namespace SimTestRequestBridge.ViewModels
                     ordered_list[i].RunNumber = i + 1;
             }
         }
+        
+  private ICommand _openStagingFolderCommand;
+        public ICommand OpenStagingFolderCommand
+        {
+            get
+            {
+                return _openStagingFolderCommand ?? (_openStagingFolderCommand = new CommandHandler(() => DeleteSelectedRun(), () => ValidateTestRequestRun));
+            }
+        }
+
+        private ICommand _deleteTestRequestRunCommand;
+        public ICommand DeleteTestRequestRunCommand
+        {
+            get
+            {
+                return _deleteTestRequestRunCommand ?? (_deleteTestRequestRunCommand = new CommandHandler(() => DeleteSelectedRun(), () => ValidateTestRequestRun));
+            }
+        }
+
+        private ICommand _deleteTestRequestCommand;
+        public ICommand DeleteTestRequestCommand
+        {
+            get
+            {
+                return _deleteTestRequestCommand ?? (_deleteTestRequestCommand = new CommandHandler(() => DeleteSelectedTestRequest(), () => ValidateTestRequestRun));
+            }
+        }
+
+        private void DeleteSelectedTestRequest()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void DeleteSelectedRun()
+        {
+            var run = currentTestRequestRun;
+
+            currentWorkingTestRequestRuns.Remove(run);
+            currentWorkingContext.Remove(run);
+            currentWorkingTestRequest.Runs.Remove(run);
+
+            //re number each run 
+            var ordered_list = currentWorkingTestRequest.Runs.OrderBy(a => a.RunNumber).ToList();
+            for (int i = 0; i < ordered_list.Count; i++)
+                ordered_list[i].RunNumber = i + 1;
+
+        }
 
         private ICommand _orderRunUpCommand;
         public ICommand OrderRunUpCommand
@@ -355,9 +392,22 @@ namespace SimTestRequestBridge.ViewModels
             }
         }
 
+        private ICommand _orderRunDownCommand;
+        public ICommand OrderRunDownCommand
+        {
+            get
+            {
+                return _orderRunDownCommand ?? (_orderRunDownCommand = new CommandHandler(() => OrderSelectedRunDown(), () => ValidateTestRequestRun));
+            }
+        }
+
         public void OrderSelectedRunUp()
         {
             MoveAndUpdateOrder(currentWorkingTestRequest.Runs, currentTestRequestRun, currentTestRequestRun.RunNumber - 1);
+        }   
+        public void OrderSelectedRunDown()
+        {
+            MoveAndUpdateOrder(currentWorkingTestRequest.Runs, currentTestRequestRun, currentTestRequestRun.RunNumber + 1);
         }
 
         //ICommand button callbacks
@@ -477,6 +527,16 @@ namespace SimTestRequestBridge.ViewModels
                 OnPropertyChanged();
             }
         }
+        public ObservableCollection<Run> CurrentWorkingTestRequestRuns
+        {
+            get { return currentWorkingTestRequestRuns; }
+            set
+            {
+                currentWorkingTestRequestRuns = value;
+                OnPropertyChanged();
+            }
+        }
+
 
         public ObservableCollection<TestRequest> CompletedTestRequests
         {
