@@ -39,7 +39,7 @@ namespace SimBridge.Database
 
         internal static TestRequest GetTestRequest(SimBridgeDataContext context,string testRequestID)
         {
-            TestRequest result = context.TestRequests.Include(i=>i.Runs).Include("Runs.RunLocation").Include("Runs.TireModelType").Include("Runs.LFTire").Include("Runs.RFTire").Include("Runs.LRTire").Include("Runs.RRTire")
+            TestRequest result = context.TestRequests.Include(i=>i.Steps).Include("Steps.StepLocation").Include("Steps.TireModelType").Include("Steps.LFTire").Include("Steps.RFTire").Include("Steps.LRTire").Include("Steps.RRTire")
                 .Include(i => i.Car).FirstOrDefault(i=>i.TestRequestID == testRequestID);
             return result;
         }
@@ -50,7 +50,6 @@ namespace SimBridge.Database
             result = context.Cars.ToList();
             return result;
         }
-
 
         /// <summary>
         /// insert test request, use as template for other inserts
@@ -67,11 +66,9 @@ namespace SimBridge.Database
             context.Cars.Add(car);
         }
 
-        public static List<Run> GetTestRequestRuns(string testRequestID, SimBridgeDataContext context)
+        public static List<Step> GetTestRequestSteps(string testRequestID, SimBridgeDataContext context)
         {
-           return context.Runs.Include(i=>i.TireModelType).Include(i =>i.LFTire).Include(i => i.LRTire).Include(i => i.RRTire).Include(i => i.RFTire).Where(i => i.TestRequestID == testRequestID).ToList();
+           return context.Steps.Include(i=>i.TireModelType).Include(i =>i.LFTire).Include(i => i.LRTire).Include(i => i.RRTire).Include(i => i.RFTire).Where(i => i.TestRequestID == testRequestID).ToList();
         }
-
-   
     }
 }

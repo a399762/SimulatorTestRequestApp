@@ -14,7 +14,7 @@ namespace SimBridge.Database
     {
         public DbSet<Car> Cars { get; set; }
         public DbSet<TestRequest> TestRequests { get; set; }
-        public DbSet<Run> Runs { get; set; }
+        public DbSet<Step> Steps { get; set; }
         public DbSet<Tire> Tires { get; set; }
         public DbSet<TireType> TireTypes { get; set; }
         public DbSet<Location> Locations { get; set; }
@@ -49,7 +49,7 @@ namespace SimBridge.Database
 
     public class TestRequest:INotifyPropertyChanged
     {
-        ICollection<Run> runs;
+        ICollection<Step> steps;
 
 
         [Key]
@@ -69,13 +69,13 @@ namespace SimBridge.Database
 
         public DateTime EndTime { get; set; }
 
-        public ICollection<Run> Runs
+        public ICollection<Step> Steps
         {
-            get { return runs; }
+            get { return steps; }
 
             set
             {
-                runs = value;
+                steps = value;
                 OnPropertyChanged();
             }
         }
@@ -107,7 +107,6 @@ namespace SimBridge.Database
     {
         int locationID;
         string description;
-
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -153,35 +152,37 @@ namespace SimBridge.Database
         }
     }
 
-    public class Run : INotifyPropertyChanged
+    public class Step : INotifyPropertyChanged
     {
-        private int runID;
-        private int runNumber;
+        private int stepID;
+        private int stepNumber;
         private int locationID;
         private int tireTypeID;
+
         private TireType tireModelType;
-        private Location runLocation;
+        private Location stepLocation;
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int RunID
+        public int StepID
         {
-            get { return runID; }
+            get { return stepID; }
 
             set
             {
-                runID = value;
+                stepID = value;
                 OnPropertyChanged();
             }
         }
 
-        public int RunNumber
+
+        public int StepNumber
         {
-            get { return runNumber; }
+            get { return stepNumber; }
 
             set
             {
-                runNumber = value;
+                stepNumber = value;
                 OnPropertyChanged();
             }
         }
@@ -197,13 +198,13 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
-        public Location RunLocation
+        public Location StepLocation
         {
-            get { return runLocation; }
+            get { return stepLocation; }
 
             set
             {
-                runLocation = value;
+                stepLocation = value;
                 OnPropertyChanged();
             }
         }
@@ -244,7 +245,7 @@ namespace SimBridge.Database
         public string TestRequestID { get; set; }
 
         [StringLength(300)]
-        public string GeneratedRunSendFilePath { get; set; }
+        public string GeneratedStepSendFilePath { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -256,27 +257,56 @@ namespace SimBridge.Database
 
     public class Tire : INotifyPropertyChanged
     {
+        string tirePath;
+        string cDT31TirePath;
+        string construction;
+        double pressure;
+
+
+
+
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int TireID { get; set; }
         
-        public string TirePath { get; set; }
-       
-        [Required]
-        [StringLength(100)]
+        public string TirePath
+        {
+            get { return tirePath; }
+
+            set
+            {
+                tirePath = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string CDT31TirePath
+        {
+            get { return cDT31TirePath; }
+
+            set
+            {
+                cDT31TirePath = value;
+                OnPropertyChanged();
+            }
+
+        }
         public string Construction { get; set; }
 
         public double Pressure { get; set; }
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
     }
 
     public class TireType : INotifyPropertyChanged, IEquatable<TireType>
     {
-
         int tireTypeID;
         string description;
-
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -312,7 +342,6 @@ namespace SimBridge.Database
         {
             return HashCode.Combine(TireTypeID);
         }
-
 
         public event PropertyChangedEventHandler PropertyChanged;
 

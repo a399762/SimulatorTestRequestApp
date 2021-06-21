@@ -1,6 +1,8 @@
-﻿using SimTestRequestBridge.ViewModels;
+﻿using SimTestRequestBridge.Helpers;
+using SimTestRequestBridge.ViewModels;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
 
@@ -61,6 +63,53 @@ namespace SimTestRequestBridge
 
             }
         }
+        private void openDialogTireSelect(TireLocationsCodes tireLocation)
+        {
+            // Create OpenFileDialog 
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.Multiselect = true;
+            dlg.Filter = "TIR (*.tir,*.cdt31)|*.tir;*.cdt31|All files (*.*)|*.*";
 
+            bool? result = dlg.ShowDialog();
+
+            if (result == true)
+            {
+                var filenames = new List<String>(dlg.FileNames);
+
+                //now take file and pass to VM, to stage it. 
+                bool stageResult = viewModel.StageTireFilesForCurrentStep(filenames, tireLocation);
+
+                if (!stageResult)
+                {
+                    //elaborate...
+                    MessageBox.Show("Error Staging Send File");
+                }
+            }
+        }
+
+        private void LFBrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            openDialogTireSelect(TireLocationsCodes.LF);
+        }
+
+        private void RFBrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            openDialogTireSelect(TireLocationsCodes.RF);
+        }
+
+        private void LRBrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            openDialogTireSelect(TireLocationsCodes.LR);
+        }
+
+        private void RRBrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            openDialogTireSelect(TireLocationsCodes.RR);
+        }
+
+        private void AllBrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            openDialogTireSelect(TireLocationsCodes.All);
+        }
     }
 }

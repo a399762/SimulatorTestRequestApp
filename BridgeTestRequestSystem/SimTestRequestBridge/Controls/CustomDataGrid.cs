@@ -29,7 +29,7 @@ namespace SimTestRequestBridge.Controls
             ICollectionView view = CollectionViewSource.GetDefaultView(newValue);
             view.SortDescriptions.Clear();
 
-            view.SortDescriptions.Add(new SortDescription("RunNumber", ListSortDirection.Ascending));
+            view.SortDescriptions.Add(new SortDescription("StepNumber", ListSortDirection.Ascending));
 
 
             // reset SortDescriptions for new ItemSource

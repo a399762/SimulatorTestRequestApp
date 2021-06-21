@@ -21,30 +21,27 @@ namespace SimTestRequestBridge.ViewModels
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         //place in settings
-        private string stagingPath = @"C:\Staging\";
+        private string stagingPath = @"C:\Staging";
 
         public event PropertyChangedEventHandler PropertyChanged;
         private ObservableCollection<TestRequest> testRequests = new ObservableCollection<TestRequest>();
         private ObservableCollection<TestRequest> completedTestRequests = new ObservableCollection<TestRequest>();
-        private ObservableCollection<Run> currentWorkingTestRequestRuns = new ObservableCollection<Run>();
+        private ObservableCollection<Step> currentWorkingTestRequestSteps = new ObservableCollection<Step>();
 
         private ObservableCollection<TireType> tireTypes;
         private ObservableCollection<Location> locations; 
 
-        //one to keep track of what is selected, the other to actively modify
+        //one to keep track of what is selected that is loaded minimally, the other to actively modify, it has all the things in it....
         private TestRequest currentSelectedTestRequest;
         private TestRequest currentWorkingTestRequest;
       
-        private Run currentTestRequestRun;
+        private Step currentTestRequestStep;
         private SimBridgeDataContext currentWorkingContext;
-
 
         public MainWindowViewModel()
         {
-            this.CurrentWorkingTestRequestRuns = new ObservableCollection<Run>();
+            this.CurrentWorkingTestRequestSteps = new ObservableCollection<Step>();
 
-
-     
             LoadTireTypesAsync();
             LoadLocationsAsync();
             LoadTestRequestsAsync();
@@ -58,17 +55,123 @@ namespace SimTestRequestBridge.ViewModels
         public string GetCurrentStagingFolder()
         {
             if (CurrentWorkingTestRequest != null)
-                return GetStagingFolderForTestRequest(CurrentWorkingTestRequest.TestRequestID);
+                return FileHelper.GetStagingFolderForTestRequest(CurrentWorkingTestRequest.TestRequestID,stagingPath);
             else
                return null;
         }
 
-        public string GetStagingFolderForTestRequest(string testRequestID)
+    
+
+        internal bool StageTireFilesForCurrentStep(List<string> filenames, TireLocationsCodes locationsCode)
         {
-            if (FileHelper.CreateStagingFolderIfNotExist(testRequestID, stagingPath))
-                return stagingPath + testRequestID + @"\";
-            return null;
+            if (CurrentWorkingTestRequest == null)
+                return false;
+
+            if (CurrentTestRequestStep == null)
+                return false;
+
+            if (!FileHelper.CreateStagingFolderIfNotExist(CurrentWorkingTestRequest.TestRequestID, stagingPath))
+                return false;
+
+            //grab the correct tire to work on.
+            Tire tire;
+            switch (locationsCode)
+            {
+                case TireLocationsCodes.LF:
+                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID,currentTestRequestStep.LFTire, currentTestRequestStep.TireTypeID, filenames);  
+                    break;
+                case TireLocationsCodes.RF:
+                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID,currentTestRequestStep.RFTire, currentTestRequestStep.TireTypeID, filenames);
+                    break;
+                case TireLocationsCodes.LR:
+                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.LRTire, currentTestRequestStep.TireTypeID, filenames);
+                    break;
+                case TireLocationsCodes.RR:
+                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.RRTire, currentTestRequestStep.TireTypeID, filenames);
+                    break;
+                case TireLocationsCodes.All:
+
+                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.LRTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.LFTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.RFTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.RRTire, currentTestRequestStep.TireTypeID, filenames);
+
+                    break;
+                default:
+                    return false;
+            }
+
+            OnPropertyChanged(nameof(CurrentWorkingTestRequest));//notify that we just updated test request with send file info
+            return true;
         }
+
+        private bool StageTireFiles(string testRequestID, Tire tire,int tireTypeID,List<string> filenames)
+        {
+
+            var tirFilePath = filenames.FirstOrDefault(i => i.Contains(".tir"));
+            var cdtFilePath = filenames.FirstOrDefault(i => i.Contains(".cdt31"));
+
+            string tirFileName = Path.GetFileName(tirFilePath);
+            string cdtFileName = Path.GetFileName(cdtFilePath);
+
+            string newtirFilePath = FileHelper.GetTiresStagingFolderForTestRequest(testRequestID, stagingPath) + @"\" + tirFileName;
+            string newcdtFilePath = FileHelper.GetTiresStagingFolderForTestRequest(testRequestID, stagingPath) + @"\" + cdtFileName;
+
+            bool result = false;
+            //do special things depending on type
+            switch (tireTypeID)
+            {
+                case (int)TireModelTypes.CDTire:
+
+                    if (tirFilePath == null || cdtFilePath == null)
+                        return false;
+
+                    try
+                    {
+                        File.Copy(tirFilePath, newtirFilePath, true);
+                        File.Copy(cdtFilePath, newcdtFilePath, true);
+
+                        //if we are ok file wise, this will work next.
+                        tire.TirePath = newtirFilePath;
+                        tire.CDT31TirePath = newcdtFilePath;
+                        result = true;
+                    }
+                    catch (Exception e)
+                    {
+
+                        throw;
+                    }
+
+                    break;
+                case (int)TireModelTypes.MFSwift:
+                case (int)TireModelTypes.MFTire:
+                    if (tirFilePath == null)
+                        return false;
+
+                    try
+                    {
+                        File.Copy(tirFilePath, newtirFilePath, true);
+                   
+                        //if we are ok file wise, this will work next.
+                        tire.TirePath = newtirFilePath;
+                        result = true;
+                    }
+                    catch (Exception e)
+                    {
+
+                        throw;
+                    }
+                    break;
+
+                default:
+                    result = false;
+                    break;
+            }
+
+            return result;
+        }
+
+       
 
         private bool StageVehicleSendFile(string filename)
         {
@@ -89,14 +192,14 @@ namespace SimTestRequestBridge.ViewModels
         }
 
         /// <summary>
-        /// check that all information is filled out in the run, i.e. All tires are entered into 
+        /// check that all information is filled out in the step, i.e. All tires are entered into 
         /// </summary>
-        /// <param name="currentTestRequestRun"></param>
+        /// <param name="currentTestRequestStep"></param>
         /// <returns></returns>
-        internal bool ValidateTestRequestForRun(Run currentTestRequestRun)
+        internal bool ValidateTestRequestForStep(Step currentTestRequestStep)
         {
             //check to make sure each tire has a tire path
-            if (currentTestRequestRun.LFTire.TirePath != null || currentTestRequestRun.LFTire.TirePath != null || currentTestRequestRun.LFTire.TirePath != null && currentTestRequestRun.LFTire.TirePath != null)
+            if (currentTestRequestStep.LFTire.TirePath != null || currentTestRequestStep.LFTire.TirePath != null || currentTestRequestStep.LFTire.TirePath != null && currentTestRequestStep.LFTire.TirePath != null)
             {
                 return true;
             }
@@ -104,22 +207,22 @@ namespace SimTestRequestBridge.ViewModels
             return false;
         }
 
-        public bool ValidateTestRequestRun
+        public bool ValidateTestRequestStep
         {
             get
             {
-                if (currentTestRequestRun != null)
-                    return ValidateTestRequestForRun(currentTestRequestRun);
+                if (currentTestRequestStep != null)
+                    return ValidateTestRequestForStep(currentTestRequestStep);
                 else
                     return false;
             }
         }
 
-        private bool StageSendFile(TestRequest currentTestRequest, string filename)
+        private bool StageSendFile(TestRequest testRequest, string filename)
         {
             //copy file to staging folder for test session
             string fileNameOnly = Path.GetFileName(filename);
-            string newfileLocation = GetStagingFolderForTestRequest(currentTestRequest.TestRequestID) + @"\" + fileNameOnly;
+            string newfileLocation = FileHelper.GetStagingFolderForTestRequest(testRequest.TestRequestID,stagingPath) + @"\" + fileNameOnly;
             
             try
             {
@@ -143,6 +246,11 @@ namespace SimTestRequestBridge.ViewModels
         public Task LoadLocationsAsync()
         {
             return Task.Run(() => LoadLocations());
+        }
+
+        public Task CreateIfNotExistStaging(string testRequestID, string stagingPath)
+        {
+            return Task.Run(() => FileHelper.CreateStagingFolderIfNotExist(testRequestID,stagingPath));
         }
 
         private void LoadTireTypes()
@@ -204,13 +312,17 @@ namespace SimTestRequestBridge.ViewModels
                 string g = "";
             }
         }
-        private void LoadTestRequest(string testRequestID)
+
+        private async void LoadTestRequest(string testRequestID)
         {
             try
             {
                 currentWorkingContext = new SimBridgeDataContext();
                 CurrentWorkingTestRequest = DBHelper.GetTestRequest(currentWorkingContext, testRequestID);
-                CurrentWorkingTestRequestRuns = new ObservableCollection<Run>(CurrentWorkingTestRequest.Runs);
+                CurrentWorkingTestRequestSteps = new ObservableCollection<Step>(CurrentWorkingTestRequest.Steps);
+
+                //create staging folder async
+                await CreateIfNotExistStaging(testRequestID, stagingPath);
             }
             catch (Exception err)
             {
@@ -218,6 +330,9 @@ namespace SimTestRequestBridge.ViewModels
                 throw;
             }
         }
+
+
+        //put this in a class function.. ftp related??/
         private bool StageCurrentSession()
         {
             try
@@ -256,7 +371,7 @@ namespace SimTestRequestBridge.ViewModels
             return path + testRequestID;
         }
 
-        private void GenerateSendFileForCurrentRun()
+        private void GenerateSendFileForCurrentStep()
         {
 
             //grab current send file
@@ -275,56 +390,59 @@ namespace SimTestRequestBridge.ViewModels
             var path = Path.GetDirectoryName(originalSendFile);
 
             //where do we want to save...
-            var runSendFilePath = path + @"\" + CurrentWorkingTestRequest.Car.Description + "_" + currentTestRequestRun.LocationID + "_" + currentTestRequestRun.LFTire.Construction + "_" + currentTestRequestRun.RFTire.Construction + "_" + currentTestRequestRun.LRTire.Construction + "_" + currentTestRequestRun.RRTire.Construction + ".xml";
-            doc.Save(runSendFilePath);
+            var stepSendFilePath = path + @"\" + CurrentWorkingTestRequest.Car.Description + "_" + currentTestRequestStep.LocationID + "_" + currentTestRequestStep.LFTire.Construction + "_" + currentTestRequestStep.RFTire.Construction + "_" + currentTestRequestStep.LRTire.Construction + "_" + currentTestRequestStep.RRTire.Construction + ".xml";
+            doc.Save(stepSendFilePath);
         }
 
-        private void AddNewRunToCurrentTestRequest()
+        private void AddNewStepToCurrentTestRequest()
         {
             if (currentWorkingTestRequest != null )
             {
                 Tire lf = new Tire();
                 lf.Construction = "40930dpo";
                 lf.Pressure = 31;
-                lf.TirePath = "Path/to/tir/file";
+   
                 Tire rf = new Tire();
                 rf.Construction = "40930dpo";
                 rf.Pressure = 31;
-                rf.TirePath = "Path/to/tir/file";
+         
                 Tire rr = new Tire();
                 rr.Construction = "20930dpo";
-                rr.Pressure = 33;
-                rr.TirePath = "Path/to/tir/file";
+                rf.Pressure = 32;
+
                 Tire lr = new Tire();
                 lr.Construction = "20930dpo";
                 lr.Pressure = 33;
-                lr.TirePath = "Path/to/tir/file";
-
-                Run run = new Run();
-                run.GeneratedRunSendFilePath = "testpath";
-                run.LFTire = lf;
-                run.RFTire = rf;
-                run.RRTire = rr;
-                run.LRTire = lr;
-                run.TireModelType = currentWorkingContext.TireTypes.FirstOrDefault(i => i.TireTypeID == 1);
-                run.RunLocation = currentWorkingContext.Locations.FirstOrDefault(i => i.LocationID == 1);
-                run.Maneuver = "Slalom";
+              
+                Step step = new Step();
+                step.GeneratedStepSendFilePath = "testpath";
+                step.LFTire = lf;
+                step.RFTire = rf;
+                step.RRTire = rr;
+                step.LRTire = lr;
+                step.TireModelType = currentWorkingContext.TireTypes.FirstOrDefault(i => i.TireTypeID == 1);
+                step.StepLocation = currentWorkingContext.Locations.FirstOrDefault(i => i.LocationID == 1);
+                step.Maneuver = "Slalom";
 
                 //get next number to use based on existing - 1 based
-                var newNumber = currentWorkingTestRequestRuns.Count() + 1;
-                run.RunNumber = newNumber;
+                var newNumber = currentWorkingTestRequestSteps.Count() + 1;
+                step.StepNumber = newNumber;
 
-                CurrentWorkingTestRequest.Runs.Add(run);
-                currentWorkingTestRequestRuns.Add(run);
+                CurrentWorkingTestRequest.Steps.Add(step);
+                currentWorkingTestRequestSteps.Add(step);
             }
         }
 
-        void MoveAndUpdateOrder(ICollection<Run> list, Run item, int positionToInsert)
+        void MoveAndUpdateOrder(ICollection<Step> list, Step item, int positionToInsert)
         {
-            if (positionToInsert >   0)
+            if (positionToInsert > 0)
             {
+
+                if (positionToInsert > list.Count)
+                    return;
+
                 // Order elements
-                var ordered_list = list.OrderBy(a => a.RunNumber).ToList();
+                var ordered_list = list.OrderBy(a => a.StepNumber).ToList();
 
                 // Remove and insert at the proper position
                 ordered_list.Remove(item);
@@ -332,25 +450,19 @@ namespace SimTestRequestBridge.ViewModels
 
                 // Update the Order properties according to it's current index +1
                 for (int i = 0; i < ordered_list.Count; i++)
-                    ordered_list[i].RunNumber = i + 1;
-            }
-        }
-        
-  private ICommand _openStagingFolderCommand;
-        public ICommand OpenStagingFolderCommand
-        {
-            get
-            {
-                return _openStagingFolderCommand ?? (_openStagingFolderCommand = new CommandHandler(() => DeleteSelectedRun(), () => ValidateTestRequestRun));
+                    ordered_list[i].StepNumber = i + 1;
             }
         }
 
-        private ICommand _deleteTestRequestRunCommand;
-        public ICommand DeleteTestRequestRunCommand
+
+
+
+        private ICommand _deleteTestRequestStepCommand;
+        public ICommand DeleteTestRequestStepCommand
         {
             get
             {
-                return _deleteTestRequestRunCommand ?? (_deleteTestRequestRunCommand = new CommandHandler(() => DeleteSelectedRun(), () => ValidateTestRequestRun));
+                return _deleteTestRequestStepCommand ?? (_deleteTestRequestStepCommand = new CommandHandler(() => DeleteSelectedStep(), () => CanExecute));
             }
         }
 
@@ -359,7 +471,7 @@ namespace SimTestRequestBridge.ViewModels
         {
             get
             {
-                return _deleteTestRequestCommand ?? (_deleteTestRequestCommand = new CommandHandler(() => DeleteSelectedTestRequest(), () => ValidateTestRequestRun));
+                return _deleteTestRequestCommand ?? (_deleteTestRequestCommand = new CommandHandler(() => DeleteSelectedTestRequest(), () => ValidateTestRequestStep));
             }
         }
 
@@ -368,46 +480,46 @@ namespace SimTestRequestBridge.ViewModels
             throw new NotImplementedException();
         }
 
-        private void DeleteSelectedRun()
+        private void DeleteSelectedStep()
         {
-            var run = currentTestRequestRun;
+            var step = currentTestRequestStep;
 
-            currentWorkingTestRequestRuns.Remove(run);
-            currentWorkingContext.Remove(run);
-            currentWorkingTestRequest.Runs.Remove(run);
+            currentWorkingTestRequestSteps.Remove(step);
+            currentWorkingContext.Remove(step);
+            currentWorkingTestRequest.Steps.Remove(step);
 
-            //re number each run 
-            var ordered_list = currentWorkingTestRequest.Runs.OrderBy(a => a.RunNumber).ToList();
+            //re number each step 
+            var ordered_list = currentWorkingTestRequest.Steps.OrderBy(a => a.StepNumber).ToList();
             for (int i = 0; i < ordered_list.Count; i++)
-                ordered_list[i].RunNumber = i + 1;
+                ordered_list[i].StepNumber = i + 1;
 
         }
 
-        private ICommand _orderRunUpCommand;
-        public ICommand OrderRunUpCommand
+        private ICommand _orderStepUpCommand;
+        public ICommand OrderStepUpCommand
         {
             get
             {
-                return _orderRunUpCommand ?? (_orderRunUpCommand = new CommandHandler(() => OrderSelectedRunUp(), () => ValidateTestRequestRun));
+                return _orderStepUpCommand ?? (_orderStepUpCommand = new CommandHandler(() => OrderSelectedStepUp(), () => CanExecute));
             }
         }
 
-        private ICommand _orderRunDownCommand;
-        public ICommand OrderRunDownCommand
+        private ICommand _orderStepDownCommand;
+        public ICommand OrderStepDownCommand
         {
             get
             {
-                return _orderRunDownCommand ?? (_orderRunDownCommand = new CommandHandler(() => OrderSelectedRunDown(), () => ValidateTestRequestRun));
+                return _orderStepDownCommand ?? (_orderStepDownCommand = new CommandHandler(() => OrderSelectedStepDown(), () => CanExecute));
             }
         }
 
-        public void OrderSelectedRunUp()
+        public void OrderSelectedStepUp()
         {
-            MoveAndUpdateOrder(currentWorkingTestRequest.Runs, currentTestRequestRun, currentTestRequestRun.RunNumber - 1);
+            MoveAndUpdateOrder(currentWorkingTestRequest.Steps, currentTestRequestStep, currentTestRequestStep.StepNumber - 1);
         }   
-        public void OrderSelectedRunDown()
+        public void OrderSelectedStepDown()
         {
-            MoveAndUpdateOrder(currentWorkingTestRequest.Runs, currentTestRequestRun, currentTestRequestRun.RunNumber + 1);
+            MoveAndUpdateOrder(currentWorkingTestRequest.Steps, currentTestRequestStep, currentTestRequestStep.StepNumber + 1);
         }
 
         //ICommand button callbacks
@@ -416,16 +528,16 @@ namespace SimTestRequestBridge.ViewModels
         {
             get
             {
-                return _generateSendFile ?? (_generateSendFile = new CommandHandler(() => GenerateSendFileForCurrentRun(), () => ValidateTestRequestRun));
+                return _generateSendFile ?? (_generateSendFile = new CommandHandler(() => GenerateSendFileForCurrentStep(), () => ValidateTestRequestStep));
             }
         }
 
-        private ICommand _newRunCommand;
-        public ICommand NewRunCommand
+        private ICommand _newStepCommand;
+        public ICommand NewStepCommand
         {
             get
             {
-                return _newRunCommand ?? (_newRunCommand = new CommandHandler(() => AddNewRunToCurrentTestRequest(), () => CanExecute));
+                return _newStepCommand ?? (_newStepCommand = new CommandHandler(() => AddNewStepToCurrentTestRequest(), () => CanExecute));
             }
         }
 
@@ -527,12 +639,12 @@ namespace SimTestRequestBridge.ViewModels
                 OnPropertyChanged();
             }
         }
-        public ObservableCollection<Run> CurrentWorkingTestRequestRuns
+        public ObservableCollection<Step> CurrentWorkingTestRequestSteps
         {
-            get { return currentWorkingTestRequestRuns; }
+            get { return currentWorkingTestRequestSteps; }
             set
             {
-                currentWorkingTestRequestRuns = value;
+                currentWorkingTestRequestSteps = value;
                 OnPropertyChanged();
             }
         }
@@ -581,12 +693,12 @@ namespace SimTestRequestBridge.ViewModels
             }
         }
 
-        public Run CurrentTestRequestRun
+        public Step CurrentTestRequestStep
         {
-            get { return currentTestRequestRun; }
+            get { return currentTestRequestStep; }
             set
             {
-                currentTestRequestRun = value;
+                currentTestRequestStep = value;
                 OnPropertyChanged();
             }
         }

@@ -10,6 +10,25 @@ namespace SimTestRequestBridge.Helpers
 {
     static class FileHelper
     {
+
+        public static string GetStagingFolderForTestRequest(string testRequestID,string stagingPath)
+        {
+            String testSessionStagingPath = stagingPath + @"\" + testRequestID;
+            return testSessionStagingPath;
+        }
+
+        public static string GetTiresStagingFolderForTestRequest(string testRequestID, string stagingPath)
+        {
+            String testTiresStagingPath = GetStagingFolderForTestRequest(testRequestID,stagingPath) + @"\Tires.cdb";
+            return testTiresStagingPath;
+        }
+
+        public static string GetSendFilesStagingFolderForTestRequest(string testRequestID, string stagingPath)
+        {
+            String testTiresStagingPath = GetStagingFolderForTestRequest(testRequestID, stagingPath) + @"\Send_files";
+            return testTiresStagingPath;
+        }
+
         /// <summary>
         /// creates staging folder on hard disk, false if error, true if folder good to go
         /// </summary>
@@ -22,20 +41,18 @@ namespace SimTestRequestBridge.Helpers
             {
                 //check to see if stagin folder exists
                 if (!Directory.Exists(stagingPath))
-                {
-                    //if it does not, try to create it.
                     Directory.CreateDirectory(stagingPath);
-                }
-
+                
                 //if we made it this far, we have a root staging directory
                 //now lets check to ensure that the current
-                String testSessionStagingPath = stagingPath + testRequestID + @"\";
-
+                String testSessionStagingPath = GetStagingFolderForTestRequest(testRequestID, stagingPath);
                 if (!Directory.Exists(testSessionStagingPath))
-                {
-                    //if it does not, try to create it.
                     Directory.CreateDirectory(testSessionStagingPath);
-                }
+                
+                //tire folder next
+                String testTireStagingPath = GetStagingFolderForTestRequest(testRequestID, stagingPath);
+                if (!Directory.Exists(testTireStagingPath))
+                    Directory.CreateDirectory(testTireStagingPath);
             }
             catch (Exception err)
             {
