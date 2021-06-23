@@ -9,7 +9,6 @@ using System.Runtime.CompilerServices;
 
 namespace SimBridge.Database
 {
-    
     public class SimBridgeDataContext : DbContext
     {
         public DbSet<Car> Cars { get; set; }
@@ -18,6 +17,10 @@ namespace SimBridge.Database
         public DbSet<Tire> Tires { get; set; }
         public DbSet<TireType> TireTypes { get; set; }
         public DbSet<Location> Locations { get; set; }
+        public DbSet<Maneuver> Maneuvers { get; set; }
+        public DbSet<StartingLocation> StartingLocations { get; set; }
+
+        public DbSet<SpeedUnit> SpeedUnits { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -27,7 +30,6 @@ namespace SimBridge.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             //add init Tire model Types
             modelBuilder.Entity<TireType>().HasData(new TireType{TireTypeID = 1,Description = "CD Tire"});
             modelBuilder.Entity<TireType>().HasData(new TireType { TireTypeID = 2, Description = "MF Tire" });
@@ -39,27 +41,69 @@ namespace SimBridge.Database
             modelBuilder.Entity<Location>().HasData(new Location { LocationID = 3, Description = "Nurburgring" });
             modelBuilder.Entity<Location>().HasData(new Location { LocationID = 4, Description = "VDA" });
 
+            //cars
             modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Race car" });
             modelBuilder.Entity<Car>().HasData(new Car { CarID = 2, Description = "Jeep Grand Cherokee wk18" });
             modelBuilder.Entity<Car>().HasData(new Car { CarID = 3, Description = "Golf 8" });
             modelBuilder.Entity<Car>().HasData(new Car { CarID = 4, Description = "Sedan Car" });
             modelBuilder.Entity<Car>().HasData(new Car { CarID = 5, Description = "Compact Car" });
+
+            //Maneuvers...
+            modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 1, Description = "Slalom" });
+            modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 2, Description = "On-Center" });
+            modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 3, Description = "Double Lane Change" });
+            modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 4, Description = "Performance" });
+
+            // how fastsss
+            modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 1, Description = "m/s", ConversionFactor = 1});
+            modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 2, Description = "km/h", ConversionFactor = 0.27778 });
+            modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 3, Description = "mph", ConversionFactor = 0.44704 });
+            modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 4, Description = "knot", ConversionFactor = 0.514444 });
         }
     }
 
     public class TestRequest:INotifyPropertyChanged
     {
+        private string comment;
+        private string sendFilePath;
+        private string description;
+
         ICollection<Step> steps;
-
-
+        private Car car;
+        
         [Key]
         public string TestRequestID { get; set; }
 
-        public string Description { get; set; }
+        public string Description
+        {
+            get { return description; }
 
-        public Car Car { get; set; }
+            set
+            {
+                description = value;
+                OnPropertyChanged();
+            }
+        }
 
-        public string SendFilePath { get; set; }
+        public Car Car
+        {
+            get { return car; }
+
+            set
+            {
+                car = value;
+                OnPropertyChanged();
+            }
+        }
+        public string SendFilePath {
+            get { return sendFilePath; }
+
+            set
+            {
+                sendFilePath = value;
+                OnPropertyChanged();
+            }
+        }
 
         public string Status { get; set; }
 
@@ -80,13 +124,85 @@ namespace SimBridge.Database
             }
         }
 
+        public string Comment
+        {
+            get { return comment; }
+
+            set
+            {
+                comment = value;
+                OnPropertyChanged();
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-        
+
+    public class Maneuver : INotifyPropertyChanged, IEquatable<Maneuver>
+    {
+        int maneuverID;
+        string description;
+        string gTTDKey;
+
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int ManeuverID
+        {
+            get { return maneuverID; }
+
+            set
+            {
+                maneuverID = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Description
+        {
+            get { return description; }
+
+            set
+            {
+                description = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string GTTDKey
+        {
+            get { return gTTDKey; }
+
+            set
+            {
+                gTTDKey = value;
+                OnPropertyChanged();
+            }
+        }
+
+        //override equal check for combobox binding assistance
+        public bool Equals(Maneuver other)
+        {
+            return other != null && ManeuverID == other.ManeuverID;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(maneuverID);
+        }
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
     public class Car : INotifyPropertyChanged
     {
         [Key]
@@ -94,6 +210,104 @@ namespace SimBridge.Database
         public int CarID { get; set; }
 
         public string Description { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+
+    public class StartingLocation : INotifyPropertyChanged
+    {
+        private int initPositionX;
+        private int initPositionY;
+        private int initPositionZ;
+
+        private int initPositionRX;
+        private int initPositionRY;
+        private int initPositionRZ;
+
+        private int initSpeedMS;
+
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int StartingLocationID { get; set; }
+
+        public string Description { get; set; }
+
+        public int InitPositionX
+        {
+            get { return initPositionX; }
+
+            set
+            {
+                initPositionX = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitPositionY
+        {
+            get { return initPositionY; }
+
+            set
+            {
+                initPositionY = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitPositionZ
+        {
+            get { return initPositionZ; }
+
+            set
+            {
+                initPositionZ = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitPositionRX
+        {
+            get { return initPositionRX; }
+
+            set
+            {
+                initPositionRX = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitPositionRY
+        {
+            get { return initPositionRY; }
+
+            set
+            {
+                initPositionRY = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitPositionRZ
+        {
+            get { return initPositionRZ; }
+
+            set
+            {
+                initPositionRZ = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int InitSpeedMS
+        {
+            get { return initSpeedMS; }
+
+            set
+            {
+                initSpeedMS = value;
+                OnPropertyChanged();
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -158,9 +372,25 @@ namespace SimBridge.Database
         private int stepNumber;
         private int locationID;
         private int tireTypeID;
+        private int maneuverID;
+        private string comment;
+        private string generatedSentFilePath;
 
+        private int initPositionX;
+        private int initPositionY;
+        private int initPositionZ;
+
+        private int initPositionRX;
+        private int initPositionRY;
+        private int initPositionRZ;
+
+        private int initSpeed;
+        private int initSpeedUnitsID;
+
+        private SpeedUnit initSpeedUnit;
         private TireType tireModelType;
         private Location stepLocation;
+        private Maneuver stepManeuver;
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -175,6 +405,123 @@ namespace SimBridge.Database
             }
         }
 
+        public int InitPositionX
+        {
+            get { return initPositionX; }
+
+            set
+            {
+                initPositionX = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int InitPositionY
+        {
+            get { return initPositionY; }
+
+            set
+            {
+                initPositionY = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitPositionZ
+        {
+            get { return initPositionZ; }
+
+            set
+            {
+                initPositionZ = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitPositionRX
+        {
+            get { return initPositionRX; }
+
+            set
+            {
+                initPositionRX = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitPositionRY
+        {
+            get { return initPositionRY; }
+
+            set
+            {
+                initPositionRY = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitPositionRZ
+        {
+            get { return initPositionRZ; }
+
+            set
+            {
+                initPositionRZ = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        public int InitSpeed
+        {
+            get { return initSpeed; }
+
+            set
+            {
+                initSpeed = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitSpeedUnitsID
+        {
+            get { return initSpeedUnitsID; }
+
+            set
+            {
+                initSpeedUnitsID = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public SpeedUnit InitSpeedUnit
+        {
+            get { return initSpeedUnit; }
+
+            set
+            {
+                initSpeedUnit = value;
+                OnPropertyChanged();
+            }
+        }
+
+        
+        public string Comment
+        {
+            get { return comment; }
+
+            set
+            {
+                comment = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string GeneratedSentFilePath
+        {
+            get { return generatedSentFilePath; }
+
+            set
+            {
+                generatedSentFilePath = value;
+                OnPropertyChanged();
+            }
+        }
 
         public int StepNumber
         {
@@ -187,7 +534,19 @@ namespace SimBridge.Database
             }
         }
 
-        [StringLength(100)]
+        
+        public int ManeuverID
+        {
+            get { return maneuverID; }
+
+            set
+            {
+                maneuverID = value;
+                OnPropertyChanged();
+            }
+        }
+
+
         public int LocationID
         {
             get { return locationID; }
@@ -208,9 +567,16 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
+        public Maneuver StepManeuver
+        {
+            get { return stepManeuver; }
 
-        [StringLength(100)]
-        public string Maneuver { get; set; }
+            set
+            {
+                stepManeuver = value;
+                OnPropertyChanged();
+            }
+        }
 
         public int TireTypeID
         {
@@ -233,11 +599,11 @@ namespace SimBridge.Database
             }
         }
 
-        public Tire LFTire { get; set; }
+        public Tire FLTire { get; set; }
 
-        public Tire RFTire { get; set; }
+        public Tire FRTire { get; set; }
 
-        public Tire LRTire { get; set; }
+        public Tire RLTire { get; set; }
 
         public Tire RRTire { get; set; }
 
@@ -257,13 +623,10 @@ namespace SimBridge.Database
 
     public class Tire : INotifyPropertyChanged
     {
-        string tirePath;
-        string cDT31TirePath;
-        string construction;
-        double pressure;
-
-
-
+        private string tirePath;
+        private string cDT31TirePath;
+        private string construction;
+        private double pressure;
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -289,11 +652,28 @@ namespace SimBridge.Database
                 cDT31TirePath = value;
                 OnPropertyChanged();
             }
-
         }
-        public string Construction { get; set; }
+        public string Construction
+        {
+            get { return construction; }
 
-        public double Pressure { get; set; }
+            set
+            {
+                construction = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double Pressure
+        {
+            get { return pressure; }
+
+            set
+            {
+                pressure = value;
+                OnPropertyChanged();
+            }
+        }
 
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
@@ -350,4 +730,67 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
+
+    public class SpeedUnit : INotifyPropertyChanged, IEquatable<SpeedUnit>
+    {
+        int speedUnitID;
+        string description;
+        double conversionFactor;
+
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int SpeedUnitID
+        {
+            get { return speedUnitID; }
+
+            set
+            {
+                speedUnitID = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Description
+        {
+            get { return description; }
+
+            set
+            {
+                description = value;
+                OnPropertyChanged();
+            }
+        }
+        //1 mph = 0.44704 m/s
+        //.44704 is the conversion facotor to get mph to m/s that the sim software takes
+        public double ConversionFactor
+        {
+            get { return conversionFactor; }
+
+            set
+            {
+                conversionFactor = value;
+                OnPropertyChanged();
+            }
+        }
+
+        //override equal check for combobox binding assistance
+        public bool Equals(SpeedUnit other)
+        {
+            return other != null && SpeedUnitID == other.SpeedUnitID;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(SpeedUnitID);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
+    
+
 }

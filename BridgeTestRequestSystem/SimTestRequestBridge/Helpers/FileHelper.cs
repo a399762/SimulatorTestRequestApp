@@ -50,9 +50,17 @@ namespace SimTestRequestBridge.Helpers
                     Directory.CreateDirectory(testSessionStagingPath);
                 
                 //tire folder next
-                String testTireStagingPath = GetStagingFolderForTestRequest(testRequestID, stagingPath);
+                String testTireStagingPath = GetTiresStagingFolderForTestRequest(testRequestID, stagingPath);
                 if (!Directory.Exists(testTireStagingPath))
                     Directory.CreateDirectory(testTireStagingPath);
+
+                //send files folder
+                String testSendFilesStagingPath = GetSendFilesStagingFolderForTestRequest(testRequestID, stagingPath);
+                if (!Directory.Exists(testSendFilesStagingPath))
+                    Directory.CreateDirectory(testSendFilesStagingPath);
+
+                
+
             }
             catch (Exception err)
             {

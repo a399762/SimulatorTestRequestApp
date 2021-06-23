@@ -4,7 +4,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace SimTestRequestBridge
 {
@@ -89,17 +91,17 @@ namespace SimTestRequestBridge
 
         private void LFBrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            openDialogTireSelect(TireLocationsCodes.LF);
+            openDialogTireSelect(TireLocationsCodes.FL);
         }
 
         private void RFBrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            openDialogTireSelect(TireLocationsCodes.RF);
+            openDialogTireSelect(TireLocationsCodes.FR);
         }
 
         private void LRBrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            openDialogTireSelect(TireLocationsCodes.LR);
+            openDialogTireSelect(TireLocationsCodes.RL);
         }
 
         private void RRBrowseButton_Click(object sender, RoutedEventArgs e)
@@ -111,5 +113,34 @@ namespace SimTestRequestBridge
         {
             openDialogTireSelect(TireLocationsCodes.All);
         }
+
+
+        private void RRClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            clearTireSelect(TireLocationsCodes.RR);
+        }
+        private void LRClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            clearTireSelect(TireLocationsCodes.RL);
+        }
+        private void RFClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            clearTireSelect(TireLocationsCodes.FR);
+        }
+        private void LFClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            clearTireSelect(TireLocationsCodes.FL);
+        }
+        private void AllClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            clearTireSelect(TireLocationsCodes.All);
+        }
+
+        private void clearTireSelect(TireLocationsCodes code)
+        {
+            viewModel.ClearStepTire(code);
+        }
+
+        
     }
 }

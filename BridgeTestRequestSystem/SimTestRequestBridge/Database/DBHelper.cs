@@ -39,8 +39,16 @@ namespace SimBridge.Database
 
         internal static TestRequest GetTestRequest(SimBridgeDataContext context,string testRequestID)
         {
-            TestRequest result = context.TestRequests.Include(i=>i.Steps).Include("Steps.StepLocation").Include("Steps.TireModelType").Include("Steps.LFTire").Include("Steps.RFTire").Include("Steps.LRTire").Include("Steps.RRTire")
-                .Include(i => i.Car).FirstOrDefault(i=>i.TestRequestID == testRequestID);
+            TestRequest result = context.TestRequests.Include(i => i.Steps).ThenInclude(i => i.StepManeuver)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.StepLocation)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.TireModelType)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.StepManeuver)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.FLTire)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.FRTire)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.RLTire)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.RRTire)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.InitSpeedUnit)
+                                                    .Include(i => i.Car).FirstOrDefault(i => i.TestRequestID == testRequestID);
             return result;
         }
 
@@ -68,7 +76,7 @@ namespace SimBridge.Database
 
         public static List<Step> GetTestRequestSteps(string testRequestID, SimBridgeDataContext context)
         {
-           return context.Steps.Include(i=>i.TireModelType).Include(i =>i.LFTire).Include(i => i.LRTire).Include(i => i.RRTire).Include(i => i.RFTire).Where(i => i.TestRequestID == testRequestID).ToList();
+           return context.Steps.Include(i=>i.TireModelType).Include(i =>i.FLTire).Include(i => i.RLTire).Include(i => i.RRTire).Include(i => i.FRTire).Where(i => i.TestRequestID == testRequestID).ToList();
         }
     }
 }

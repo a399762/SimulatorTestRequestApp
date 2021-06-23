@@ -9,7 +9,6 @@ namespace SimBridge.Helpers
 {
     public static class SendFileHelper
     {
-
         static XNamespace xmlDefaultNamespace = "http://www.mscsoftware.com/:vfc";
 
         public enum TirePositionProperties

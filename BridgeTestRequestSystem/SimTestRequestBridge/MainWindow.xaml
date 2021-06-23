@@ -6,9 +6,12 @@
         xmlns:local="clr-namespace:SimTestRequestBridge"
         xmlns:vm1="clr-namespace:SimTestRequestBridge.ViewModels" 
         xmlns:clr="clr-namespace:System;assembly=System.Runtime" 
-        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase" xmlns:controls="clr-namespace:SimTestRequestBridge.Controls"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase" 
+        xmlns:controls="clr-namespace:SimTestRequestBridge.Controls" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" 
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
+        xmlns:behavior="clr-namespace:SimTestRequestBridge.Helpers" xmlns:i1="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="Sim Test Request Bridge" Height="874" Width="1174" >
+        Title="Sim Test Request Bridge" Height="959" Width="1174" >
     <Window.DataContext>
         <vm1:MainWindowViewModel></vm1:MainWindowViewModel>
     </Window.DataContext>
@@ -28,6 +31,8 @@
             <Setter Property="CornerRadius" Value="3" />
         </Style>
         <vm1:FileFromPathConverter x:Key="FileFromPathConverter" />
+        <vm1:StringToNumberConverter x:Key="StringToNumberConverter" />
+        
         <SolidColorBrush x:Key="clBr" Color="LightBlue" />
     </Window.Resources>
     <DockPanel>
@@ -88,15 +93,29 @@
                             </TabItem>
                             <TabItem Header="Vehicle Setup">
                                 <StackPanel Margin="10">
-                                    <Label DockPanel.Dock="Top">Request Vehicle:</Label>
-                                    <TextBlock  DockPanel.Dock="Top" HorizontalAlignment="Stretch"  Text="{Binding CurrentWorkingTestRequest.Car.Description}" Background="White"  />
+                                    <Label >Request Vehicle:</Label>
+                                    <TextBlock HorizontalAlignment="Stretch"  Text="{Binding CurrentWorkingTestRequest.Car.Description}" Background="White"  />
                                     <Label >Vehicle Send File</Label>
-                                    <DockPanel   >
-                                        <Button Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center" Click="Button_ClickAsync"/>
-                                        <TextBlock HorizontalAlignment="Stretch" Width="300"  Margin="5,1,1,1" Text="{Binding CurrentWorkingTestRequest.SendFilePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
-                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/BadIcon.png"/>
-                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/GoodIcon.png"/>
-                                    </DockPanel>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto"  />
+                                            <ColumnDefinition  />
+                                            <ColumnDefinition Width="auto"  />
+                                            <ColumnDefinition Width="auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition  />
+                                        </Grid.RowDefinitions>
+                                        <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="Button_ClickAsync" />
+                                        <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="Button_ClickAsync" />
+                                        <TextBlock Grid.Column="2"  Margin="5,1,1,1" Text="{Binding CurrentWorkingTestRequest.SendFilePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
+                                       
+                                        <Image Grid.Column="3" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
+                                        <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
+                                    </Grid>
+
                                     <Label>Validation/ other information about loaded send file..???</Label>
                                 </StackPanel>
                             </TabItem>
@@ -133,14 +152,12 @@
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
                                     <DataGridTextColumn Header="Location" Binding="{Binding StepLocation.Description}"/>
+                                    <DataGridTextColumn Header="Maneuver" Binding="{Binding StepManeuver.Description}"/>
                                     <DataGridTextColumn Header="Tire Model" Binding="{Binding TireModelType.Description}"/>
-                                    <DataGridTextColumn Header="Car" Binding="{Binding Path=Maneuver}"/>
-
-                                    <DataGridTextColumn Header="LF Tire" Binding="{Binding LFTire.Construction}"/>
-                                    <DataGridTextColumn Header="RF Tire" Binding="{Binding RFTire.Construction}"/>
-                                    <DataGridTextColumn Header="LR Tire" Binding="{Binding LRTire.Construction }"/>
+                                    <DataGridTextColumn Header="FL Tire" Binding="{Binding FLTire.Construction}"/>
+                                    <DataGridTextColumn Header="FR Tire" Binding="{Binding FRTire.Construction}"/>
+                                    <DataGridTextColumn Header="RL Tire" Binding="{Binding RLTire.Construction }"/>
                                     <DataGridTextColumn Header="RR Tire" Binding="{Binding RRTire.Construction}"/>
-
                                 </controls:CustomDataGrid.Columns>
                                 <controls:CustomDataGrid.Resources>
                                     <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="DarkGray"/>
@@ -150,141 +167,276 @@
                     </GroupBox>
                 </Grid>
                 <DockPanel
-                    Background="AliceBlue"
                     Height="Auto"            
                     Margin="10">
-                    <GroupBox   IsEnabled="{Binding CurrentTestRequestStep, TargetNullValue=False}"  Header="Test Request - Selected Step Information" Grid.Column="1" RenderTransformOrigin="0.5,0.5"  >
-                        <GroupBox.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform/>
-                                <SkewTransform AngleX="-0.144"/>
-                                <RotateTransform/>
-                                <TranslateTransform X="-0.497"/>
-                            </TransformGroup>
-                        </GroupBox.RenderTransform>
-                        <DockPanel Margin="5">
-                            <ToolBarTray DockPanel.Dock="Top"  >
-                                <ToolBar>
-                                    <Button Command="{Binding GenerateSendFile}"  Content="Generate Send" />
-                                  
-                                </ToolBar>
-                            </ToolBarTray>
-
-                            <Label DockPanel.Dock="Top">Step Number:</Label>
-                            <TextBlock  DockPanel.Dock="Top" HorizontalAlignment="Left" Width="200"  Text="{Binding CurrentTestRequestStep.StepNumber}" Background="White"  />
-
-                            <Label DockPanel.Dock="Top" >Location:</Label>
-                            <ComboBox DockPanel.Dock="Top" 
-                                ItemsSource="{Binding Locations}"
-                                DisplayMemberPath="Description"
-                                SelectedValuePath="LocationID"
-                                SelectedItem="{Binding Path=CurrentTestRequestStep.StepLocation}"
-                                HorizontalAlignment="Left"
-                                Width="250"></ComboBox>
-
-                            <TabControl Background="AliceBlue" Margin="10">
-                                <TabItem Header="Tires">
-                                    <StackPanel Margin="10" Grid.Column="0">
-
-                                        <Label >Tire Model Type:</Label>
-                                        <ComboBox ItemsSource="{Binding TireTypes}"
+                    <ScrollViewer IsTabStop="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <GroupBox   IsEnabled="{Binding CurrentTestRequestStep, TargetNullValue=False}"  Header="Test Request - Selected Step Information" Grid.Column="1" RenderTransformOrigin="0.5,0.5"  >
+                            <GroupBox.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform/>
+                                    <SkewTransform AngleX="-0.144"/>
+                                    <RotateTransform/>
+                                    <TranslateTransform X="-0.497"/>
+                                </TransformGroup>
+                            </GroupBox.RenderTransform>
+                            <DockPanel Margin="5">
+                                <ToolBarTray DockPanel.Dock="Top"  >
+                                    <ToolBar>
+                                        <Button ToolTip="This is a tool tip." Command="{Binding GenerateSendFile}"  Content="Generate Set"  IsEnabled="{Binding CurrentTestRequestStep, TargetNullValue=False}" />
+                                    </ToolBar>
+                                </ToolBarTray>
+                                <TabControl Background="AliceBlue">
+                                    <TabItem Header="General" >
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal"  DockPanel.Dock="Top">
+                                                <Label>Step Number:</Label>
+                                                <Label Content="{Binding CurrentTestRequestStep.StepNumber}"  />
+                                            </StackPanel>
+                                            <Label DockPanel.Dock="Top" >Location:</Label>
+                                            <ComboBox DockPanel.Dock="Top" 
+                                                ItemsSource="{Binding Locations}"
+                                                DisplayMemberPath="Description"
+                                                SelectedValuePath="LocationID"
+                                                SelectedItem="{Binding Path=CurrentTestRequestStep.StepLocation}"
+                                                HorizontalAlignment="Left"
+                                                Width="250"></ComboBox>
+                                            <Label DockPanel.Dock="Top" >Maneuver:</Label>
+                                            <ComboBox DockPanel.Dock="Top" 
+                                                ItemsSource="{Binding Maneuvers}"
+                                                DisplayMemberPath="Description"
+                                                SelectedValuePath="ManeuverID"
+                                                SelectedItem="{Binding Path=CurrentTestRequestStep.StepManeuver}"
+                                                HorizontalAlignment="Left"
+                                                Width="250"></ComboBox>
+                                            <GroupBox Header="Vehicle Starting Conditions:" Margin="0,10" HorizontalContentAlignment="Left" HorizontalAlignment="Left"  >
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal" >
+                                                        <Label DockPanel.Dock="Top" >Initial Speed:</Label>
+                                                        <TextBox  DockPanel.Dock="Top" HorizontalAlignment="Right" Width="100" Margin="2,0,0,0"  Text="{Binding CurrentTestRequestStep.InitSpeed}" Background="White"  />
+                                                        <ComboBox DockPanel.Dock="Top" 
+                                                            ItemsSource="{Binding SpeedUnits}"
+                                                            DisplayMemberPath="Description"
+                                                            SelectedValuePath="ManeuverID"
+                                                            SelectedItem="{Binding Path=CurrentTestRequestStep.InitSpeedUnit}"
+                                                            HorizontalAlignment="Left"
+                                                            Width="80"></ComboBox>
+                                                    </StackPanel>
+                                                    <Grid DockPanel.Dock="Top">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="auto" />
+                                                            <ColumnDefinition Width="auto" />
+                                                            <ColumnDefinition Width="auto" />
+                                                            <ColumnDefinition Width="auto" />
+                                                            <ColumnDefinition Width="auto" />
+                                                            <ColumnDefinition Width="auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition />
+                                                            <RowDefinition />
+                                                        </Grid.RowDefinitions>
+                                                        <Label Margin="4" Grid.Column="0" Grid.Row="0">X</Label>
+                                                        <TextBox Margin="4" Grid.Column="1" Grid.Row="0" Width="80"></TextBox>
+                                                        <Label Margin="4"  Grid.Column="2" Grid.Row="0">Y</Label>
+                                                        <TextBox Margin="4" Grid.Column="3" Grid.Row="0" Width="80"></TextBox>
+                                                        <Label Margin="4" Grid.Column="4" Grid.Row="0">Z</Label>
+                                                        <TextBox Margin="4" Grid.Column="5" Grid.Row="0" Width="80"></TextBox>
+                                                        <Label Margin="4" Grid.Column="0" Grid.Row="1">rX</Label>
+                                                        <TextBox Margin="4" Grid.Column="1" Grid.Row="1" Width="80"></TextBox>
+                                                        <Label Margin="4" Grid.Column="2" Grid.Row="1">rY</Label>
+                                                        <TextBox Margin="4" Grid.Column="3" Grid.Row="1" Width="80"></TextBox>
+                                                        <Label Margin="4" Grid.Column="4" Grid.Row="1">rZ</Label>
+                                                        <TextBox Margin="4" Grid.Column="5" Grid.Row="1" Width="80"></TextBox>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </GroupBox>
+                                        </StackPanel>
+                                    </TabItem>
+                                    <TabItem Header="Tires">
+                                        <StackPanel Margin="10" Grid.Column="0">
+                                            <Label >Tire Model Type:</Label>
+                                            <ComboBox ItemsSource="{Binding TireTypes}"
                                           DisplayMemberPath="Description"
                                           SelectedValuePath="TireTypeID"
                                           SelectedItem="{Binding Path=CurrentTestRequestStep.TireModelType}"
                                           HorizontalAlignment="Left"
                                           Width="250"></ComboBox>
+                                            <Label>Generated Send files will be modifed to correctly support Tire Type selected. Import both the CDT31 and tir file at the same time for CD tire model tires.</Label>
+                                            <GroupBox Header="Tires input selection"  Grid.Column="0"  >
+                                                <StackPanel>
+                                                    <StackPanel Margin="10" Grid.Column="0">
+                                                        <DockPanel  LastChildFill="True" >
+                                                            <Label DockPanel.Dock="Left">Set All Tires:</Label>
+                                                        </DockPanel >
+                                                        <DockPanel>
+                                                            <Button x:Name="AllBrowseButton" HorizontalAlignment="Left" Content="Browse" Width="100"   DockPanel.Dock="Left"  Click="AllBrowseButton_Click" />
+                                                            <Button x:Name="AllClearButton" HorizontalAlignment="Left" Content="Clear" Width="100"   DockPanel.Dock="Left"  Click="AllClearButton_Click" />
+                                                        </DockPanel >
+                                                        <Separator  />
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="120" />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition  />
+                                                            </Grid.RowDefinitions>
+                                                            <Label Grid.Column="0" DockPanel.Dock="Left">Left Front Tire:</Label>
+                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.FLTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                                                            <TextBox Grid.Column="2" Width="50" Text="{Binding CurrentTestRequestStep.FLTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Double}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                            <Label Grid.Column="3" DockPanel.Dock="Left">psi</Label>
+                                                        </Grid>
+                                                        <Grid Margin="10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition  />
+                                                            </Grid.RowDefinitions>
+                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="LFBrowseButton_Click"/>
+                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="LFClearButton_Click" />
+                                                            <TextBlock Grid.Column="2"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.FLTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" Grid.ColumnSpan="2"  />
+                                                            <Image Grid.Column="3" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
+                                                            <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
+                                                        </Grid>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="120" />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition  />
+                                                            </Grid.RowDefinitions>
+                                                            <Label Grid.Column="0" DockPanel.Dock="Left">Right Front Tire:</Label>
+                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.FRTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
 
-                                        <Label>Generated Send files will be modifed to correctly support Tire Type selected.</Label>
 
-                                        <GroupBox Header="Tires input selection"  Grid.Column="0"  >
+                                                            <TextBox Grid.Column="2"  Width="50" Text="{Binding CurrentTestRequestStep.FRTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Double}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
 
-                                            <StackPanel>
+                                                            <Label Grid.Column="3" DockPanel.Dock="Left">psi</Label>
+                                                        </Grid>
+                                                        <Grid Margin="10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition  />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition  />
+                                                            </Grid.RowDefinitions>
+                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="RFBrowseButton_Click"/>
+                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="RFClearButton_Click" />
+                                                            <TextBlock Grid.Column="2"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.FRTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
+                                                            <Image Grid.Column="3" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
+                                                            <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
+                                                        </Grid>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="120" />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition  />
+                                                            </Grid.RowDefinitions>
+                                                            <Label Grid.Column="0" DockPanel.Dock="Left">Left Rear Tire:</Label>
+                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.RLTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
 
-                                                <!--<Grid>
-                                                <Grid.Resources >
-                                                    <Style TargetType="Border" >
-                                                        <Setter Property="Margin" Value="5,5,5,5" />
-                                                    </Style>
-                                                </Grid.Resources>
-                                                <Grid.ColumnDefinitions>
-
-                                                    <ColumnDefinition Width="auto"/>
-                                                    <ColumnDefinition  Width="auto"/>
-
-                                                </Grid.ColumnDefinitions>
-
-                                                <RadioButton Grid.Column="0" Content="All Tires" Margin="10" Checked=""/>
-                                                <RadioButton Grid.Column="1"  Content="Individual" Margin="10"/>
-
-                                            </Grid>-->
-
-                                                <StackPanel Margin="10" Grid.Column="0">
-                                                    <DockPanel  LastChildFill="True" >
-                                                        <Label DockPanel.Dock="Left">Set All Tires:</Label>
-
-                                                    </DockPanel >
-                                                    <DockPanel  LastChildFill="True" >
-                                                        <Button x:Name="AllBrowseButton" Content="Browse"   DockPanel.Dock="Left" VerticalAlignment="Center" Click="AllBrowseButton_Click" />
-                                                    </DockPanel >
-                                                    <Separator  />
-                                                    <DockPanel  LastChildFill="True" >
-                                                        <Label DockPanel.Dock="Left">Left Front Tire:</Label>
-                                                        <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestStep.LFTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                                        <Label DockPanel.Dock="Left" Margin="0,0,0,0"  Content="{Binding CurrentTestRequestStep.LFTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                                        <Label DockPanel.Dock="Left">psi</Label>
-                                                    </DockPanel >
-                                                    <DockPanel  LastChildFill="True" >
-                                                        <Button x:Name="LFBrowseButton" Content="Browse"   DockPanel.Dock="Left" VerticalAlignment="Center" Click="LFBrowseButton_Click" />
-                                                        <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestStep.LFTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
-                                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/BadIcon.png"/>
-                                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/GoodIcon.png"/>
-                                                    </DockPanel >
-                                                    <DockPanel  LastChildFill="True" >
-                                                        <Label DockPanel.Dock="Left">Right Front Tire:</Label>
-                                                        <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestStep.RFTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                                        <Label DockPanel.Dock="Left" Margin="10,0,0,0"  Content="{Binding CurrentTestRequestStep.RFTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                                        <Label DockPanel.Dock="Left">psi</Label>
-                                                    </DockPanel >
-                                                    <DockPanel LastChildFill="True" >
-                                                        <Button  x:Name="RFBrowseButton" Content="Browse"  DockPanel.Dock="Left" VerticalAlignment="Center" Click="RFBrowseButton_Click" />
-                                                        <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestStep.RFTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
-                                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/BadIcon.png"/>
-                                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/GoodIcon.png"/>
-                                                    </DockPanel >
-                                                    <DockPanel  LastChildFill="True" >
-                                                        <Label DockPanel.Dock="Left">Left Rear  Tire:</Label>
-                                                        <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestStep.LRTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                                        <Label DockPanel.Dock="Left" Margin="10,0,0,0"  Content="{Binding CurrentTestRequestStep.LRTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                                        <Label DockPanel.Dock="Left">psi</Label>
-                                                    </DockPanel >
-                                                    <DockPanel  LastChildFill="True" >
-                                                        <Button Content="Browse"  x:Name="LRBrowseButton"    DockPanel.Dock="Left" VerticalAlignment="Center" Click="LRBrowseButton_Click"/>
-                                                        <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestStep.LRTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
-                                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/BadIcon.png"/>
-                                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/GoodIcon.png"/>
-                                                    </DockPanel >
-                                                    <DockPanel  LastChildFill="True" >
-                                                        <Label DockPanel.Dock="Left">Right Rear  Tire:</Label>
-                                                        <Label DockPanel.Dock="Left"  Content="{Binding CurrentTestRequestStep.RRTire.Construction, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                                        <Label DockPanel.Dock="Left" Margin="10,0,0,0"  Content="{Binding CurrentTestRequestStep.RRTire.Pressure, UpdateSourceTrigger=PropertyChanged}"></Label>
-                                                        <Label DockPanel.Dock="Left">psi</Label>
-                                                    </DockPanel >
-                                                    <DockPanel LastChildFill="True" >
-                                                        <Button Content="Browse" x:Name="RRBrowseButton"     DockPanel.Dock="Left" VerticalAlignment="Center" Click="RRBrowseButton_Click"/>
-                                                        <TextBlock HorizontalAlignment="Left" Width="600" Margin="5,1,1,1" Text="{Binding CurrentTestRequestStep.RRTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
-                                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/BadIcon.png"/>
-                                                        <Image HorizontalAlignment="Left" Height="20" DockPanel.Dock="Left"  Source="Resources/GoodIcon.png"/>
-                                                    </DockPanel >
+                                                            <TextBox Grid.Column="2" Width="50" Text="{Binding CurrentTestRequestStep.RLTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Double}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                            <Label Grid.Column="3" DockPanel.Dock="Left">psi</Label>
+                                                        </Grid>
+                                                        <Grid Margin="10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition  />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition  />
+                                                            </Grid.RowDefinitions>
+                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="LRBrowseButton_Click"/>
+                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="LRClearButton_Click" />
+                                                            <TextBlock Grid.Column="2"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.RLTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
+                                                            <Image Grid.Column="3" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
+                                                            <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
+                                                        </Grid>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="120" />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition  />
+                                                            </Grid.RowDefinitions>
+                                                            <Label Grid.Column="0" DockPanel.Dock="Left">Right Rear Tire:</Label>
+                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.RRTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                                                            <TextBox Grid.Column="2" Width="50" Text="{Binding CurrentTestRequestStep.RRTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Double}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                            <Label Grid.Column="3" DockPanel.Dock="Left">psi</Label>
+                                                        </Grid>
+                                                        <Grid Margin="10">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition  />
+                                                                <ColumnDefinition Width="auto"  />
+                                                                <ColumnDefinition Width="auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition  />
+                                                            </Grid.RowDefinitions>
+                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="RRBrowseButton_Click"/>
+                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="RRClearButton_Click" />
+                                                            <TextBlock Grid.Column="2"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.RRTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
+                                                            <Image Grid.Column="3" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
+                                                            <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
+                                                        </Grid>
+                                                    </StackPanel>
                                                 </StackPanel>
-                                            </StackPanel>
-                                        </GroupBox>
-                                    </StackPanel>
-                                </TabItem>
-                                <TabItem Header="Telemetry Logs" />
-                                <TabItem Header="Comments" />
-                            </TabControl>
-                        </DockPanel>
-                    </GroupBox>
+                                            </GroupBox>
+                                        </StackPanel>
+                                    </TabItem>
+                                    <TabItem Header="Telemetry Logs" />
+                                    <TabItem Header="Comments" >
+                                        <TextBox AcceptsReturn="True" Text="{Binding CurrentTestRequestStep.Comment,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" 
+                                             TextWrapping="Wrap" HorizontalScrollBarVisibility="Hidden"
+                                              HorizontalAlignment="Stretch"
+                                             VerticalAlignment="Stretch"/>
+                                    </TabItem>
+                                    <TabItem Header="Cueing" />
+                                </TabControl>
+                            </DockPanel>
+                        </GroupBox>
+                    </ScrollViewer>
                 </DockPanel>
             </DockPanel>
         </Grid>
