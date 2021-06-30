@@ -37,7 +37,7 @@ namespace SimBridge.Database
             return result;
         }
 
-        internal static TestRequest GetTestRequest(SimBridgeDataContext context,string testRequestID)
+        internal static TestRequest GetTestRequest(SimBridgeDataContext context,int testRequestID)
         {
             TestRequest result = context.TestRequests.Include(i => i.Steps).ThenInclude(i => i.StepManeuver)
                                                     .Include(i => i.Steps).ThenInclude(i => i.StepLocation)
@@ -74,7 +74,7 @@ namespace SimBridge.Database
             context.Cars.Add(car);
         }
 
-        public static List<Step> GetTestRequestSteps(string testRequestID, SimBridgeDataContext context)
+        public static List<Step> GetTestRequestSteps(int testRequestID, SimBridgeDataContext context)
         {
            return context.Steps.Include(i=>i.TireModelType).Include(i =>i.FLTire).Include(i => i.RLTire).Include(i => i.RRTire).Include(i => i.FRTire).Where(i => i.TestRequestID == testRequestID).ToList();
         }

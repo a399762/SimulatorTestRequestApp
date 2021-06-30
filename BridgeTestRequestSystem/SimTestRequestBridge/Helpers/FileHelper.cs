@@ -11,21 +11,21 @@ namespace SimTestRequestBridge.Helpers
     static class FileHelper
     {
 
-        public static string GetStagingFolderForTestRequest(string testRequestID,string stagingPath)
+        public static string GetStagingFolderForTestRequest(string testRequestNumber,string stagingPath)
         {
-            String testSessionStagingPath = stagingPath + @"\" + testRequestID;
+            String testSessionStagingPath = stagingPath + @"\" + testRequestNumber;
             return testSessionStagingPath;
         }
 
-        public static string GetTiresStagingFolderForTestRequest(string testRequestID, string stagingPath)
+        public static string GetTiresStagingFolderForTestRequest(string testRequestNumber, string stagingPath)
         {
-            String testTiresStagingPath = GetStagingFolderForTestRequest(testRequestID,stagingPath) + @"\Tires.cdb";
+            String testTiresStagingPath = GetStagingFolderForTestRequest(testRequestNumber, stagingPath) + @"\Tires.cdb";
             return testTiresStagingPath;
         }
 
-        public static string GetSendFilesStagingFolderForTestRequest(string testRequestID, string stagingPath)
+        public static string GetSendFilesStagingFolderForTestRequest(string testRequestNumber, string stagingPath)
         {
-            String testTiresStagingPath = GetStagingFolderForTestRequest(testRequestID, stagingPath) + @"\Send_files";
+            String testTiresStagingPath = GetStagingFolderForTestRequest(testRequestNumber, stagingPath) + @"\Send_files";
             return testTiresStagingPath;
         }
 
@@ -35,7 +35,7 @@ namespace SimTestRequestBridge.Helpers
         /// <param name="testRequestID"></param>
         /// <param name="stagingPath"></param>
         /// <returns>false if error, true if folder good to go</returns>
-        public static bool CreateStagingFolderIfNotExist(string testRequestID,string stagingPath)
+        public static bool CreateStagingFolderIfNotExist(string testRequestNumber, string stagingPath)
         {
             try
             {
@@ -45,22 +45,19 @@ namespace SimTestRequestBridge.Helpers
                 
                 //if we made it this far, we have a root staging directory
                 //now lets check to ensure that the current
-                String testSessionStagingPath = GetStagingFolderForTestRequest(testRequestID, stagingPath);
+                String testSessionStagingPath = GetStagingFolderForTestRequest(testRequestNumber, stagingPath);
                 if (!Directory.Exists(testSessionStagingPath))
                     Directory.CreateDirectory(testSessionStagingPath);
                 
                 //tire folder next
-                String testTireStagingPath = GetTiresStagingFolderForTestRequest(testRequestID, stagingPath);
+                String testTireStagingPath = GetTiresStagingFolderForTestRequest(testRequestNumber, stagingPath);
                 if (!Directory.Exists(testTireStagingPath))
                     Directory.CreateDirectory(testTireStagingPath);
 
                 //send files folder
-                String testSendFilesStagingPath = GetSendFilesStagingFolderForTestRequest(testRequestID, stagingPath);
+                String testSendFilesStagingPath = GetSendFilesStagingFolderForTestRequest(testRequestNumber, stagingPath);
                 if (!Directory.Exists(testSendFilesStagingPath))
                     Directory.CreateDirectory(testSendFilesStagingPath);
-
-                
-
             }
             catch (Exception err)
             {

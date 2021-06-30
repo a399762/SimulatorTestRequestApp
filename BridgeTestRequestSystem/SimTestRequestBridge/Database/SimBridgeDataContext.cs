@@ -31,9 +31,9 @@ namespace SimBridge.Database
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //add init Tire model Types
-            modelBuilder.Entity<TireType>().HasData(new TireType{TireTypeID = 1,Description = "CD Tire"});
-            modelBuilder.Entity<TireType>().HasData(new TireType { TireTypeID = 2, Description = "MF Tire" });
-            modelBuilder.Entity<TireType>().HasData(new TireType { TireTypeID = 3, Description = "MF Swift" });
+            modelBuilder.Entity<TireType>().HasData(new TireType{TireTypeID = 1,Description = "CD Tire", RequiresCDTFile = true});
+            modelBuilder.Entity<TireType>().HasData(new TireType { TireTypeID = 2, Description = "MF Tire", RequiresCDTFile = false });
+            modelBuilder.Entity<TireType>().HasData(new TireType { TireTypeID = 3, Description = "MF Swift", RequiresCDTFile = false });
 
             //add init locations
             modelBuilder.Entity<Location>().HasData(new Location { LocationID = 1, Description = "3 Lane Highway" });
@@ -62,18 +62,31 @@ namespace SimBridge.Database
         }
     }
 
+    [Index(nameof(TestNumber))]
     public class TestRequest:INotifyPropertyChanged
     {
         private string comment;
         private string sendFilePath;
         private string description;
+        private string testNumber;
 
         ICollection<Step> steps;
         private Car car;
         
         [Key]
-        public string TestRequestID { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int TestRequestID { get; set; }
 
+        public string TestNumber {
+            get { return testNumber; }
+
+            set
+            {
+                testNumber = value;
+                OnPropertyChanged();
+            }
+        }
+        //TestNmber
         public string Description
         {
             get { return description; }
@@ -371,7 +384,7 @@ namespace SimBridge.Database
         private int stepID;
         private int stepNumber;
         private int locationID;
-        private int tireTypeID;
+        private int tireTypeID;//tiremodeltype
         private int maneuverID;
         private string comment;
         private string generatedSentFilePath;
@@ -384,6 +397,7 @@ namespace SimBridge.Database
         private int initPositionRY;
         private int initPositionRZ;
 
+        private int initGear;
         private int initSpeed;
         private int initSpeedUnitsID;
 
@@ -489,6 +503,17 @@ namespace SimBridge.Database
             }
         }
 
+        public int InitGear
+        {
+            get { return initGear; }
+
+            set
+            {
+                initGear = value;
+                OnPropertyChanged();
+            }
+        }
+        
         public SpeedUnit InitSpeedUnit
         {
             get { return initSpeedUnit; }
@@ -608,7 +633,7 @@ namespace SimBridge.Database
         public Tire RRTire { get; set; }
 
         [Required]
-        public string TestRequestID { get; set; }
+        public int TestRequestID { get; set; }
 
         [StringLength(300)]
         public string GeneratedStepSendFilePath { get; set; }
@@ -686,6 +711,7 @@ namespace SimBridge.Database
     public class TireType : INotifyPropertyChanged, IEquatable<TireType>
     {
         int tireTypeID;
+        bool requiresCDTFile;
         string description;
 
         [Key]
@@ -697,6 +723,17 @@ namespace SimBridge.Database
             set
             {
                 tireTypeID = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool RequiresCDTFile
+        {
+            get { return requiresCDTFile; }
+
+            set
+            {
+                requiresCDTFile = value;
                 OnPropertyChanged();
             }
         }
@@ -791,6 +828,4 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-    
-
 }

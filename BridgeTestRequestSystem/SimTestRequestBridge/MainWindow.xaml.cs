@@ -65,6 +65,7 @@ namespace SimTestRequestBridge
 
             }
         }
+
         private void openDialogTireSelect(TireLocationsCodes tireLocation)
         {
             // Create OpenFileDialog 
@@ -89,17 +90,17 @@ namespace SimTestRequestBridge
             }
         }
 
-        private void LFBrowseButton_Click(object sender, RoutedEventArgs e)
+        private void FLBrowseButton_Click(object sender, RoutedEventArgs e)
         {
             openDialogTireSelect(TireLocationsCodes.FL);
         }
 
-        private void RFBrowseButton_Click(object sender, RoutedEventArgs e)
+        private void FRBrowseButton_Click(object sender, RoutedEventArgs e)
         {
             openDialogTireSelect(TireLocationsCodes.FR);
         }
 
-        private void LRBrowseButton_Click(object sender, RoutedEventArgs e)
+        private void RLBrowseButton_Click(object sender, RoutedEventArgs e)
         {
             openDialogTireSelect(TireLocationsCodes.RL);
         }
@@ -114,20 +115,19 @@ namespace SimTestRequestBridge
             openDialogTireSelect(TireLocationsCodes.All);
         }
 
-
         private void RRClearButton_Click(object sender, RoutedEventArgs e)
         {
             clearTireSelect(TireLocationsCodes.RR);
         }
-        private void LRClearButton_Click(object sender, RoutedEventArgs e)
+        private void RLClearButton_Click(object sender, RoutedEventArgs e)
         {
             clearTireSelect(TireLocationsCodes.RL);
         }
-        private void RFClearButton_Click(object sender, RoutedEventArgs e)
+        private void FRClearButton_Click(object sender, RoutedEventArgs e)
         {
             clearTireSelect(TireLocationsCodes.FR);
         }
-        private void LFClearButton_Click(object sender, RoutedEventArgs e)
+        private void FLClearButton_Click(object sender, RoutedEventArgs e)
         {
             clearTireSelect(TireLocationsCodes.FL);
         }

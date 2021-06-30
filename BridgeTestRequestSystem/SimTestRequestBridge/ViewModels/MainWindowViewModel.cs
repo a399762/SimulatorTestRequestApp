@@ -12,6 +12,8 @@ using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Xml.Linq;
@@ -59,12 +61,10 @@ namespace SimTestRequestBridge.ViewModels
         public string GetCurrentStagingFolder()
         {
             if (CurrentWorkingTestRequest != null)
-                return FileHelper.GetStagingFolderForTestRequest(CurrentWorkingTestRequest.TestRequestID,stagingPath);
+                return FileHelper.GetStagingFolderForTestRequest(CurrentWorkingTestRequest.TestNumber,stagingPath);
             else
                return null;
         }
-
-    
 
         internal bool StageTireFilesForCurrentStep(List<string> filenames, TireLocationsCodes locationsCode)
         {
@@ -74,7 +74,7 @@ namespace SimTestRequestBridge.ViewModels
             if (CurrentTestRequestStep == null)
                 return false;
 
-            if (!FileHelper.CreateStagingFolderIfNotExist(CurrentWorkingTestRequest.TestRequestID, stagingPath))
+            if (!FileHelper.CreateStagingFolderIfNotExist(CurrentWorkingTestRequest.TestNumber, stagingPath))
                 return false;
 
             //grab the correct tire to work on.
@@ -82,23 +82,23 @@ namespace SimTestRequestBridge.ViewModels
             switch (locationsCode)
             {
                 case TireLocationsCodes.FL:
-                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID,currentTestRequestStep.FLTire, currentTestRequestStep.TireTypeID, filenames);  
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.FLTire, currentTestRequestStep.TireTypeID, filenames);  
                     break;
                 case TireLocationsCodes.FR:
-                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID,currentTestRequestStep.FRTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.FRTire, currentTestRequestStep.TireTypeID, filenames);
                     break;
                 case TireLocationsCodes.RL:
-                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.RLTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RLTire, currentTestRequestStep.TireTypeID, filenames);
                     break;
                 case TireLocationsCodes.RR:
-                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.RRTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RRTire, currentTestRequestStep.TireTypeID, filenames);
                     break;
                 case TireLocationsCodes.All:
 
-                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.RLTire, currentTestRequestStep.TireTypeID, filenames);
-                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.FLTire, currentTestRequestStep.TireTypeID, filenames);
-                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.FRTire, currentTestRequestStep.TireTypeID, filenames);
-                    StageTireFiles(CurrentWorkingTestRequest.TestRequestID, currentTestRequestStep.RRTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RLTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.FLTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.FRTire, currentTestRequestStep.TireTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RRTire, currentTestRequestStep.TireTypeID, filenames);
 
                     break;
                 default:
@@ -107,6 +107,16 @@ namespace SimTestRequestBridge.ViewModels
 
             OnPropertyChanged(nameof(CurrentWorkingTestRequest));//notify that we just updated test request with send file info
             return true;
+        }
+
+        private void Save_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = IsValid(sender as DependencyObject);
+        }
+
+        private bool IsValid(DependencyObject obj)
+        {
+            return !Validation.GetHasError(obj) && LogicalTreeHelper.GetChildren(obj).OfType<DependencyObject>().All(IsValid);
         }
 
         internal void ClearStepTire(TireLocationsCodes code)
@@ -263,7 +273,7 @@ namespace SimTestRequestBridge.ViewModels
         {
             //copy file to staging folder for test session
             string fileNameOnly = Path.GetFileName(filename);
-            string newfileLocation = FileHelper.GetSendFilesStagingFolderForTestRequest(testRequest.TestRequestID,stagingPath) + @"\" + fileNameOnly;
+            string newfileLocation = FileHelper.GetSendFilesStagingFolderForTestRequest(testRequest.TestNumber,stagingPath) + @"\" + fileNameOnly;
             
             try
             {
@@ -318,9 +328,9 @@ namespace SimTestRequestBridge.ViewModels
         }
 
 
-        public Task CreateIfNotExistStaging(string testRequestID, string stagingPath)
+        public Task CreateIfNotExistStaging(string testNumber, string stagingPath)
         {
-            return Task.Run(() => FileHelper.CreateStagingFolderIfNotExist(testRequestID,stagingPath));
+            return Task.Run(() => FileHelper.CreateStagingFolderIfNotExist(testNumber, stagingPath));
         }
 
         private void LoadLocations()
@@ -383,7 +393,7 @@ namespace SimTestRequestBridge.ViewModels
             }
         }
 
-        private async void LoadTestRequest(string testRequestID)
+        private async void LoadTestRequest(int testRequestID)
         {
             try
             {
@@ -392,15 +402,13 @@ namespace SimTestRequestBridge.ViewModels
                 CurrentWorkingTestRequestSteps = new ObservableCollection<Step>(CurrentWorkingTestRequest.Steps);
 
                 //create staging folder async
-                await CreateIfNotExistStaging(testRequestID, stagingPath);
+                await CreateIfNotExistStaging(CurrentWorkingTestRequest.TestNumber, stagingPath);
             }
             catch (Exception err)
             {
-
                 throw;
             }
         }
-
 
         //put this in a class function.. ftp related??/
         private bool StageCurrentSession()
@@ -432,7 +440,7 @@ namespace SimTestRequestBridge.ViewModels
 
         private string GetCurrentRemoteStagingFolderForTestRequest()
         {
-            return GetRemoteStagingFolderForTestRequest(currentWorkingTestRequest.TestRequestID);
+            return GetRemoteStagingFolderForTestRequest(currentWorkingTestRequest.TestNumber);
         }
 
         private string GetRemoteStagingFolderForTestRequest(string testRequestID)
@@ -459,8 +467,6 @@ namespace SimTestRequestBridge.ViewModels
             String rawSendFileXML = File.ReadAllText(originalSendFile);
             XDocument doc = XDocument.Parse(rawSendFileXML);
 
-            //string testTire = "mdids://VW_Golf8_150cv_eTSI_copy2/tires.tbl/CDTire/MOD1_GY_EFG_PERF_20555R16_91V_HG9535_RTmodel_implicit_44MP_v3.tir";
-
             SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fl_tire_property_file, ConvertToMDISFormat(step.FLTire.TirePath), doc);
             SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fr_tire_property_file, ConvertToMDISFormat(step.FLTire.TirePath), doc);
             SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rl_tire_property_file, ConvertToMDISFormat(step.FLTire.TirePath), doc);
@@ -470,7 +476,7 @@ namespace SimTestRequestBridge.ViewModels
             var path = Path.GetDirectoryName(originalSendFile);
 
             //where do we want to save...
-            var stepSendFilePath = FileHelper.GetSendFilesStagingFolderForTestRequest(trID,stagingPath) + @"\" + step + "_" + testRequest.Car.Description + "_" + step.LocationID + "_" + step.FLTire.Construction + "_" + step.FRTire.Construction + "_" + step.RLTire.Construction + "_" + step.RRTire.Construction + ".xml";
+            var stepSendFilePath = FileHelper.GetSendFilesStagingFolderForTestRequest(testRequest.TestNumber, stagingPath) + @"\" + step + "_" + testRequest.Car.Description + "_" + step.LocationID + "_" + step.FLTire.Construction + "_" + step.FRTire.Construction + "_" + step.RLTire.Construction + "_" + step.RRTire.Construction + ".xml";
             doc.Save(stepSendFilePath);
 
         }
@@ -679,24 +685,32 @@ namespace SimTestRequestBridge.ViewModels
         public void testGenerateNewTestRequest()
         {
             //check if there is a car use first, else create then use
-            using (SimBridgeDataContext context = new SimBridgeDataContext())
+            try
             {
-                var car = DBHelper.GetCars(context)[0];
+                using (SimBridgeDataContext context = new SimBridgeDataContext())
+                {
+                    var car = DBHelper.GetCars(context)[0];
 
-                TestRequest testRequest = new TestRequest();
-                testRequest.Car = car;
-                testRequest.Description = "test";
-                testRequest.RecievedTime = DateTime.Now;
-                testRequest.TestRequestID = Guid.NewGuid().ToString();
+                    TestRequest testRequest = new TestRequest();
+                    testRequest.Car = car;
+                    testRequest.Description = "test";
+                    testRequest.RecievedTime = DateTime.Now;
+                    testRequest.TestNumber = Guid.NewGuid().ToString().Substring(18);
 
-                TestRequests.Add(testRequest);
+                    TestRequests.Add(testRequest);
 
-                DBHelper.InsertTestRequest(testRequest, context);
+                    DBHelper.InsertTestRequest(testRequest, context);
 
-                context.SaveChanges();
+                    context.SaveChanges();
+                }
+            }
+            catch (Exception ee)
+            {
+                string t = "";
             }
         }
-        
+
+
         public ObservableCollection<Location> Locations
         {
             get
