@@ -47,7 +47,7 @@ namespace SimBridge.Database
                                                     .Include(i => i.Steps).ThenInclude(i => i.FRTire)
                                                     .Include(i => i.Steps).ThenInclude(i => i.RLTire)
                                                     .Include(i => i.Steps).ThenInclude(i => i.RRTire)
-                                                    .Include(i => i.Steps).ThenInclude(i => i.InitSpeedUnit)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.InitStepStartingCondition)
                                                     .Include(i => i.Car).FirstOrDefault(i => i.TestRequestID == testRequestID);
             return result;
         }
@@ -57,26 +57,6 @@ namespace SimBridge.Database
             List<Car> result = null;
             result = context.Cars.ToList();
             return result;
-        }
-
-        /// <summary>
-        /// insert test request, use as template for other inserts
-        /// </summary>
-        /// <param name="testRequest"></param>
-        public static void InsertTestRequest(TestRequest testRequest, SimBridgeDataContext context)
-        {
-            context.TestRequests.Add(testRequest);
-        }
-
-
-        public static void InsertCar(Car car, SimBridgeDataContext context)
-        {
-            context.Cars.Add(car);
-        }
-
-        public static List<Step> GetTestRequestSteps(int testRequestID, SimBridgeDataContext context)
-        {
-           return context.Steps.Include(i=>i.TireModelType).Include(i =>i.FLTire).Include(i => i.RLTire).Include(i => i.RRTire).Include(i => i.FRTire).Where(i => i.TestRequestID == testRequestID).ToList();
         }
     }
 }

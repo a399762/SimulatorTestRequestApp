@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SimTestRequestBridge.Helpers
 {
-    enum TireModelTypes
+    enum TireModelTypesEnum
     {
         CDTire  = 1,
         MFTire = 2,

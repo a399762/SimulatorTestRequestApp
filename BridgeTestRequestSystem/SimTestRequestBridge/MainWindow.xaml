@@ -9,7 +9,9 @@
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase" 
         xmlns:controls="clr-namespace:SimTestRequestBridge.Controls" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" 
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity" 
-        xmlns:behavior="clr-namespace:SimTestRequestBridge.Helpers" xmlns:i1="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:my="clr-namespace:SimTestRequestBridge.Helpers"
+        xmlns:behavior="clr-namespace:SimTestRequestBridge.Helpers" 
+        xmlns:i1="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="Sim Test Request Bridge" Height="959" Width="1174" >
     <Window.DataContext>
@@ -32,10 +34,10 @@
         </Style>
         <vm1:FileFromPathConverter x:Key="FileFromPathConverter" />
         <vm1:StringToNumberConverter x:Key="StringToNumberConverter" />
-        
+        <vm1:IsIntEqualEnumConverter x:Key="IsIntEqualEnumConverter" />
         <SolidColorBrush x:Key="clBr" Color="LightBlue" />
     </Window.Resources>
-    <DockPanel>
+    <DockPanel >
         <ToolBarTray DockPanel.Dock="Top"  >
             <ToolBar>
                 <Button Command="{Binding NewCommand}"  Content="New" />
@@ -46,7 +48,7 @@
                 <Button  Content="Import" />
             </ToolBar>
         </ToolBarTray>
-        <Grid Name="MCGrid">
+        <Grid Name="MCGrid" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="*" />
@@ -56,7 +58,7 @@
             </Grid.RowDefinitions>
             <Expander Grid.Column="0"  Background="Gray" FlowDirection="RightToLeft" ExpandDirection="Right" IsExpanded="True" >
                 <DockPanel Background="LightGray" FlowDirection="LeftToRight" >
-                    <GroupBox DockPanel.Dock="Top" Header="Test Requests - In Process" >
+                    <GroupBox DockPanel.Dock="Top" Header="Test Requests - In Process" FontSize="15" >
                         <DataGrid Name="inProcessTestRequestDataGrid" Margin="5" FlowDirection="LeftToRight" MinWidth="200" MinHeight="300"   Background="LightGray"  AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True" SelectionMode="Single"  SelectedItem="{Binding CurrentSelectedTestRequest}" ItemsSource="{Binding Path=TestRequests, Mode=OneWay, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}"  >
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Binding="{Binding Path=TestNumber}"/>
@@ -79,7 +81,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="300" />
                     </Grid.RowDefinitions>
-                    <GroupBox Header="Test Request - General Information"  Grid.Column="0"  >
+                    <GroupBox Header="Test Request - General Information"  Grid.Column="0"  FontSize="15">
                         <TabControl Margin="5" Background="AliceBlue">
                             <TabItem Header="Information">
                                 <DockPanel Height="Auto" Name="stackPanel1" Width="Auto" LastChildFill="True" Margin="5">
@@ -125,7 +127,7 @@
                             </TabItem>
                         </TabControl>
                     </GroupBox>
-                    <GroupBox Header="Test Request - Steps" Grid.Column="1"  >
+                    <GroupBox Header="Test Request - Steps" Grid.Column="1" FontSize="15" >
                         <DockPanel Background="LightGray" Grid.Column="2" Margin="5" >
                             <ToolBarTray DockPanel.Dock="Top" >
                                 <ToolBar>
@@ -133,8 +135,8 @@
                                     <Button Command="{Binding DeleteTestRequestStepCommand}"  Content="Delete" />
                                     <Button Command="{Binding OrderStepUpCommand}" Content="Up" />
                                     <Button Command="{Binding OrderStepDownCommand}"  Content="Down" />
-                                    <Button Command="{Binding GenerateAllTestRequestsSendFile}"  Content="Generate All Set"  IsEnabled="{Binding CurrentTestRequestStep, TargetNullValue=False}" />
-            
+                                    <Button Command="{Binding GenerateAllTestRequestsSendFiles}"  Content="Generate All Send Files"  />
+                                    <Button Command="{Binding ValidateAllSets}"  Content="Validate all Steps"  />
                                 </ToolBar>
                             </ToolBarTray>
                             <controls:CustomDataGrid Background="LightGray" x:Name="stepDataGrid"  AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True"  SelectedItem="{Binding CurrentTestRequestStep}" ItemsSource="{Binding Source={StaticResource CurrentWorkingStepsCollectionView}}">
@@ -171,7 +173,7 @@
                     Height="Auto"            
                     Margin="10">
                     <ScrollViewer IsTabStop="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <GroupBox   IsEnabled="{Binding CurrentTestRequestStep, TargetNullValue=False}"  Header="Test Request - Selected Step Information" Grid.Column="1" RenderTransformOrigin="0.5,0.5"  >
+                        <GroupBox FontSize="15"   IsEnabled="{Binding CurrentTestRequestStep, TargetNullValue=False}"  Header="Test Request - Selected Step Information" Grid.Column="1" RenderTransformOrigin="0.5,0.5"  >
                             <GroupBox.RenderTransform>
                                 <TransformGroup>
                                     <ScaleTransform/>
@@ -182,8 +184,9 @@
                             </GroupBox.RenderTransform>
                             <DockPanel Margin="5">
                                 <ToolBarTray DockPanel.Dock="Top"  >
-                                    <ToolBar>
-                                        <Button ToolTip="This is a tool tip." Command="{Binding GenerateSendFile}"  Content="Generate Set"  IsEnabled="{Binding CurrentTestRequestStep, TargetNullValue=False}" />
+                                    <ToolBar  IsEnabled="{Binding CurrentTestRequestStep, TargetNullValue=False}">
+                                        <Button Command="{Binding GenerateSendFileCommand}"  Content="Generate Send File"  />
+                                        <Button Command="{Binding ValidateStepCommand}"  Content="Validate Step"  />
                                     </ToolBar>
                                 </ToolBarTray>
                                 <TabControl Background="AliceBlue">
@@ -209,80 +212,140 @@
                                                 SelectedItem="{Binding Path=CurrentTestRequestStep.StepManeuver}"
                                                 HorizontalAlignment="Left"
                                                 Width="250"></ComboBox>
-                                            <GroupBox Header="Vehicle Starting Conditions:" Margin="0,10" HorizontalContentAlignment="Left" HorizontalAlignment="Left"  >
+                                             
+                                            <GroupBox Header="Lap Timer:" Margin="0,10" HorizontalContentAlignment="Left" HorizontalAlignment="Left"  >
                                                 <StackPanel>
-                                                    <Grid DockPanel.Dock="Top">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="auto" />
-                                                            <ColumnDefinition Width="auto" />
-                                                            <ColumnDefinition Width="auto" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition />
-                                                            <RowDefinition />
-                                                        </Grid.RowDefinitions>
-                                                        <Label Margin="4"  Grid.Column="0">Initial Speed:</Label>
-                                                        <TextBox Margin="4"  Grid.Column="1" HorizontalAlignment="Right" Width="100"  Text="{Binding CurrentTestRequestStep.InitSpeed}" Background="White"  />
-                                                        <ComboBox 
+                                                    <CheckBox>Enable Automatic Lap Timer in Send File?</CheckBox>
+                                                    <!--<ComboBox DockPanel.Dock="Top" 
+                                                        ItemsSource="{Binding d}"
+                                                        DisplayMemberPath="Description"
+                                                        SelectedValuePath="ManeuverID"
+                                                        SelectedItem="{Binding Path=CurrentTestRequestStep.StepManeuver}"
+                                                        HorizontalAlignment="Left"
+                                                        Width="250"></ComboBox> -->
+                                                    </StackPanel>
+                                            </GroupBox>
+                                            <GroupBox Header="Vehicle Starting Conditions:" Margin="0,10" HorizontalContentAlignment="Left" HorizontalAlignment="Left"  >
+
+                                                <StackPanel Orientation="Horizontal">
+
+
+                                                    <ListBox Width="200">
+                                                        
+                                                    </ListBox>
+                                                   
+                                                    <StackPanel>
+
+                                                        <CheckBox Content="Manual Override Starting Conditions" IsChecked="{Binding CurrentTestRequestStep.OverrideStartingCondition}"></CheckBox>
+
+                                                        <StackPanel  IsEnabled="{Binding CurrentTestRequestStep.OverrideStartingCondition, TargetNullValue=False}">
+                                                            <Grid DockPanel.Dock="Top">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition />
+                                                                <RowDefinition />
+                                                            </Grid.RowDefinitions>
+                                                            <Label Margin="4"  Grid.Column="0">Initial Speed:</Label>
+                                                            <TextBox Margin="4"  Grid.Column="1" HorizontalAlignment="Right" Width="100"  Text="{Binding CurrentTestRequestStep.InitSpeed ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" Background="White"  >
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                            <ComboBox 
                                                                 Margin="4" 
                                                                 Grid.Column="2"
-                                                            ItemsSource="{Binding SpeedUnits}"
-                                                            DisplayMemberPath="Description"
-                                                            SelectedValuePath="ManeuverID"
-                                                            SelectedItem="{Binding Path=CurrentTestRequestStep.InitSpeedUnit}"
-                                                            HorizontalAlignment="Left"
-                                                            Width="80"></ComboBox>
-                                                        <Label Margin="4"  Grid.Column="0" Grid.Row="1" >Initial Gear:</Label>
-                                               
-                                                        <TextBox Margin="4"  Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" Width="50" MaxLength="1" Text="{Binding CurrentTestRequestStep.InitGear,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
-                                                            <i1:Interaction.Behaviors>
-                                                                <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int16}" />
-                                                            </i1:Interaction.Behaviors>
-                                                        </TextBox>
+                                                                ItemsSource="{Binding SpeedUnits}"
+                                                                DisplayMemberPath="Description"
+                                                                SelectedValuePath="SpeedUnitID"
+                                                                SelectedItem="{Binding Path=CurrentTestRequestStep.InitSpeedUnit}"
+                                                                HorizontalAlignment="Left"
+                                                                Width="80"></ComboBox>
+                                                            <Label Margin="4"  Grid.Column="0" Grid.Row="1" >Initial Gear:</Label>
 
-                                                    </Grid>
+                                                            <TextBox Margin="4"  Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" Width="50" MaxLength="1" Text="{Binding CurrentTestRequestStep.InitGear,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
 
-                                                    <Grid DockPanel.Dock="Top">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="auto" />
-                                                            <ColumnDefinition Width="auto" />
-                                                            <ColumnDefinition Width="auto" />
-                                                            <ColumnDefinition Width="auto" />
-                                                            <ColumnDefinition Width="auto" />
-                                                            <ColumnDefinition Width="auto" />
-                                                        </Grid.ColumnDefinitions>
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition />
-                                                            <RowDefinition /> 
-                                                        </Grid.RowDefinitions>
-                                                        <Label  Margin="4" Grid.Column="0" Grid.Row="0" >X</Label>
-                                                        <TextBox  Margin="4" Grid.Column="1" Grid.Row="0" Width="80"  Text="{Binding CurrentTestRequestStep.InitPositionX}"></TextBox>
-                                                        <Label Margin="4"  Grid.Column="2" Grid.Row="0">Y</Label>
-                                                        <TextBox Margin="4" Grid.Column="3" Grid.Row="0" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionY}"></TextBox>
-                                                        <Label Margin="4" Grid.Column="4" Grid.Row="0">Z</Label>
-                                                        <TextBox Margin="4" Grid.Column="5" Grid.Row="0" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionZ}"></TextBox>
-                                                        <Label Margin="4" Grid.Column="0" Grid.Row="1">rX</Label>
-                                                        <TextBox Margin="4" Grid.Column="1" Grid.Row="1" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionRX}"></TextBox>
-                                                        <Label Margin="4" Grid.Column="2" Grid.Row="1">rY</Label>
-                                                        <TextBox Margin="4" Grid.Column="3" Grid.Row="1" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionRY}"></TextBox>
-                                                        <Label Margin="4" Grid.Column="4" Grid.Row="1">rZ</Label>
-                                                        <TextBox Margin="4" Grid.Column="5" Grid.Row="1" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionRZ}"></TextBox>
-                                                    </Grid>
+                                                        </Grid>
+                                                        <Grid DockPanel.Dock="Top">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                                <ColumnDefinition Width="auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition />
+                                                                <RowDefinition />
+                                                            </Grid.RowDefinitions>
+                                                            <Label  Margin="4" Grid.Column="0" Grid.Row="0" >X</Label>
+                                                            <TextBox  Margin="4" Grid.Column="1" Grid.Row="0" Width="80"  Text="{Binding CurrentTestRequestStep.InitPositionX,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                            <Label Margin="4"  Grid.Column="2" Grid.Row="0">Y</Label>
+                                                            <TextBox Margin="4" Grid.Column="3" Grid.Row="0" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionY,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                            <Label Margin="4" Grid.Column="4" Grid.Row="0">Z</Label>
+                                                            <TextBox Margin="4" Grid.Column="5" Grid.Row="0" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionZ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                            <Label Margin="4" Grid.Column="0" Grid.Row="1">rX</Label>
+                                                            <TextBox Margin="4" Grid.Column="1" Grid.Row="1" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionRX,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                            <Label Margin="4" Grid.Column="2" Grid.Row="1">rY</Label>
+                                                            <TextBox Margin="4" Grid.Column="3" Grid.Row="1" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionRY,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                            <Label Margin="4" Grid.Column="4" Grid.Row="1">rZ</Label>
+                                                            <TextBox Margin="4" Grid.Column="5" Grid.Row="1" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionRZ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
+                                                                <i1:Interaction.Behaviors>
+                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                </i1:Interaction.Behaviors>
+                                                            </TextBox>
+                                                        </Grid>
+                                                        </StackPanel>
+                                                    </StackPanel>
                                                 </StackPanel>
+                                                
+                                              
+                                                
+                                                
+                                                
+                                                
                                             </GroupBox>
                                         </StackPanel>
                                     </TabItem>
                                     <TabItem Header="Tires">
                                         <StackPanel Margin="10" Grid.Column="0">
                                             <Label >Tire Model Type:</Label>
-                                            <ComboBox ItemsSource="{Binding TireTypes}"
+                                            <ComboBox ItemsSource="{Binding TireModelTypes}"
                                           DisplayMemberPath="Description"
-                                          SelectedValuePath="TireTypeID"
+                                          SelectedValuePath="TireModelTypeID"
                                           SelectedItem="{Binding Path=CurrentTestRequestStep.TireModelType}"
                                           HorizontalAlignment="Left"
                                           Width="250"></ComboBox>
                                             <Label>Generated Send files will be modifed to correctly support Tire Type selected.</Label>
-                                            <Label>Import both the CDT31 and tir file at the same time for CD tire model tires.</Label>
+                                            <Label>Import/Select both the .CDT31 and .tir file at the same time for CD tire model tires.</Label>
                                             <GroupBox Header="Tires input selection"  Grid.Column="0"  >
                                                 <StackPanel>
                                                     <StackPanel Margin="10" Grid.Column="0">
@@ -314,6 +377,7 @@
                                                             <Label Grid.Column="3" DockPanel.Dock="Left">psi</Label>
                                                         </Grid>
                                                         <Grid Margin="10">
+                                                           
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="auto" />
                                                                 <ColumnDefinition Width="auto"  />
@@ -324,7 +388,18 @@
                                                             </Grid.ColumnDefinitions>
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition  />
-                                                                <RowDefinition  />
+                                                                <RowDefinition>
+                                                                    <RowDefinition.Style>
+                                                                        <Style TargetType="{x:Type RowDefinition}">
+                                                                            <Setter Property="Height" Value="0" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Value="True" Binding="{Binding CurrentTestRequestStep.TireModelType.TireModelTypeID,UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IsIntEqualEnumConverter}, ConverterParameter={x:Static my:TireModelTypesEnum.CDTire}}">
+                                                                                    <Setter Property="Height" Value="Auto" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </RowDefinition.Style>
+                                                                </RowDefinition>
                                                             </Grid.RowDefinitions>
                                                             <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="FLBrowseButton_Click"/>
                                                             <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="FLClearButton_Click" />
@@ -371,7 +446,18 @@
                                                             </Grid.ColumnDefinitions>
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition  />
-                                                                <RowDefinition  />
+                                                                <RowDefinition>
+                                                                    <RowDefinition.Style>
+                                                                        <Style TargetType="{x:Type RowDefinition}">
+                                                                            <Setter Property="Height" Value="0" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Value="True" Binding="{Binding CurrentTestRequestStep.TireModelType.TireModelTypeID,UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IsIntEqualEnumConverter}, ConverterParameter={x:Static my:TireModelTypesEnum.CDTire}}">
+                                                                                    <Setter Property="Height" Value="Auto" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </RowDefinition.Style>
+                                                                </RowDefinition>
                                                             </Grid.RowDefinitions>
                                                             <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="FRBrowseButton_Click"/>
                                                             <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="FRClearButton_Click" />
@@ -418,7 +504,18 @@
                                                             </Grid.ColumnDefinitions>
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition  />
-                                                                <RowDefinition  />
+                                                                <RowDefinition>
+                                                                    <RowDefinition.Style>
+                                                                        <Style TargetType="{x:Type RowDefinition}">
+                                                                            <Setter Property="Height" Value="0" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Value="True" Binding="{Binding CurrentTestRequestStep.TireModelType.TireModelTypeID,UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IsIntEqualEnumConverter}, ConverterParameter={x:Static my:TireModelTypesEnum.CDTire}}">
+                                                                                    <Setter Property="Height" Value="Auto" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </RowDefinition.Style>
+                                                                </RowDefinition>
                                                             </Grid.RowDefinitions>
 
                                                             <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="RLBrowseButton_Click"/>
@@ -467,7 +564,18 @@
                                                             </Grid.ColumnDefinitions>
                                                             <Grid.RowDefinitions>
                                                                 <RowDefinition  />
-                                                                <RowDefinition  />
+                                                                <RowDefinition>
+                                                                    <RowDefinition.Style>
+                                                                        <Style TargetType="{x:Type RowDefinition}">
+                                                                            <Setter Property="Height" Value="0" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Value="True" Binding="{Binding CurrentTestRequestStep.TireModelType.TireModelTypeID,UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IsIntEqualEnumConverter}, ConverterParameter={x:Static my:TireModelTypesEnum.CDTire}}">
+                                                                                    <Setter Property="Height" Value="Auto" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </RowDefinition.Style>
+                                                                </RowDefinition>
                                                             </Grid.RowDefinitions>
                                                             <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="RRBrowseButton_Click"/>
                                                             <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="RRClearButton_Click" />

@@ -15,25 +15,27 @@ namespace SimBridge.Database
         public DbSet<TestRequest> TestRequests { get; set; }
         public DbSet<Step> Steps { get; set; }
         public DbSet<Tire> Tires { get; set; }
-        public DbSet<TireType> TireTypes { get; set; }
+        public DbSet<TireModelType> TireTypes { get; set; }
         public DbSet<Location> Locations { get; set; }
         public DbSet<Maneuver> Maneuvers { get; set; }
-        public DbSet<StartingLocation> StartingLocations { get; set; }
+       
+        public DbSet<StepStartingCondition> StepStartingConditions { get; set; }
 
         public DbSet<SpeedUnit> SpeedUnits { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite("Data Source=SimBridgeData.db");
+            optionsBuilder.EnableSensitiveDataLogging();
             base.OnConfiguring(optionsBuilder);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //add init Tire model Types
-            modelBuilder.Entity<TireType>().HasData(new TireType{TireTypeID = 1,Description = "CD Tire", RequiresCDTFile = true});
-            modelBuilder.Entity<TireType>().HasData(new TireType { TireTypeID = 2, Description = "MF Tire", RequiresCDTFile = false });
-            modelBuilder.Entity<TireType>().HasData(new TireType { TireTypeID = 3, Description = "MF Swift", RequiresCDTFile = false });
+            modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 1,Description = "CD Tire", RequiresCDTFile = true});
+            modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 2, Description = "MF Tire", RequiresCDTFile = false });
+            modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 3, Description = "MF Swift", RequiresCDTFile = false });
 
             //add init locations
             modelBuilder.Entity<Location>().HasData(new Location { LocationID = 1, Description = "3 Lane Highway" });
@@ -59,7 +61,13 @@ namespace SimBridge.Database
             modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 2, Description = "km/h", ConversionFactor = 0.27778 });
             modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 3, Description = "mph", ConversionFactor = 0.44704 });
             modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 4, Description = "knot", ConversionFactor = 0.514444 });
+
+            //default init conidtions
+            modelBuilder.Entity<StepStartingCondition>().HasData(new StepStartingCondition { SetStartingConditionID = 1, InitSpeedUnitsID=1 });
+
         }
+
+
     }
 
     [Index(nameof(TestNumber))]
@@ -231,8 +239,9 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-
-    public class StartingLocation : INotifyPropertyChanged
+   
+   
+    public class StepStartingCondition : INotifyPropertyChanged
     {
         private int initPositionX;
         private int initPositionY;
@@ -242,14 +251,14 @@ namespace SimBridge.Database
         private int initPositionRY;
         private int initPositionRZ;
 
-        private int initSpeedMS;
+        private int initGear;
+        private int initSpeed;
+        private int initSpeedUnitsID;
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int StartingLocationID { get; set; }
-
-        public string Description { get; set; }
-
+        public int SetStartingConditionID { get; set; }
+      
         public int InitPositionX
         {
             get { return initPositionX; }
@@ -260,6 +269,7 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
+
         public int InitPositionY
         {
             get { return initPositionY; }
@@ -311,13 +321,34 @@ namespace SimBridge.Database
             }
         }
 
-        public int InitSpeedMS
+        public int InitSpeed
         {
-            get { return initSpeedMS; }
+            get { return initSpeed; }
 
             set
             {
-                initSpeedMS = value;
+                initSpeed = value;
+                OnPropertyChanged();
+            }
+        }
+        public int InitSpeedUnitsID
+        {
+            get { return initSpeedUnitsID; }
+
+            set
+            {
+                initSpeedUnitsID = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int InitGear
+        {
+            get { return initGear; }
+
+            set
+            {
+                initGear = value;
                 OnPropertyChanged();
             }
         }
@@ -329,6 +360,7 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
+
 
     public class Location : INotifyPropertyChanged, IEquatable<Location>
     {
@@ -384,10 +416,14 @@ namespace SimBridge.Database
         private int stepID;
         private int stepNumber;
         private int locationID;
-        private int tireTypeID;//tiremodeltype
+        private int tireModelTypeID;
         private int maneuverID;
+        private int initStepStartingConditionID;
         private string comment;
         private string generatedSentFilePath;
+        private bool validated;
+
+        private bool overrideStartingCondition;
 
         private int initPositionX;
         private int initPositionY;
@@ -399,12 +435,15 @@ namespace SimBridge.Database
 
         private int initGear;
         private int initSpeed;
-        private int initSpeedUnitsID;
+
+        private int initSpeedUnitID;
 
         private SpeedUnit initSpeedUnit;
-        private TireType tireModelType;
+        private StepStartingCondition initStepStartingCondition;
+        private TireModelType tireModelType;
         private Location stepLocation;
         private Maneuver stepManeuver;
+
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -419,6 +458,16 @@ namespace SimBridge.Database
             }
         }
 
+        public bool OverrideStartingCondition
+        {
+            get { return overrideStartingCondition; }
+
+            set
+            {
+                overrideStartingCondition = value;
+                OnPropertyChanged();
+            }
+        }
         public int InitPositionX
         {
             get { return initPositionX; }
@@ -492,13 +541,13 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
-        public int InitSpeedUnitsID
+        public int InitSpeedUnitID
         {
-            get { return initSpeedUnitsID; }
+            get { return initSpeedUnitID; }
 
             set
             {
-                initSpeedUnitsID = value;
+                initSpeedUnitID = value;
                 OnPropertyChanged();
             }
         }
@@ -513,7 +562,7 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
-        
+
         public SpeedUnit InitSpeedUnit
         {
             get { return initSpeedUnit; }
@@ -525,7 +574,28 @@ namespace SimBridge.Database
             }
         }
 
-        
+        public StepStartingCondition? InitStepStartingCondition
+        {
+            get { return initStepStartingCondition; }
+
+            set
+            {
+                initStepStartingCondition = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int InitStepStartingConditionID
+        {
+            get { return initStepStartingConditionID; }
+
+            set
+            {
+                initStepStartingConditionID = value;
+                OnPropertyChanged();
+            }
+        }
+      
         public string Comment
         {
             get { return comment; }
@@ -582,6 +652,18 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
+
+        public bool Validated
+        {
+            get { return validated; }
+
+            set
+            {
+                validated = value;
+                OnPropertyChanged();
+            }
+        }
+
         public Location StepLocation
         {
             get { return stepLocation; }
@@ -603,18 +685,18 @@ namespace SimBridge.Database
             }
         }
 
-        public int TireTypeID
+        public int TireModelTypeID
         {
-            get { return tireTypeID; }
+            get { return tireModelTypeID; }
 
             set
             {
-                tireTypeID = value;
+                tireModelTypeID = value;
                 OnPropertyChanged();
             }
         }
 
-        public TireType TireModelType {
+        public TireModelType TireModelType {
             get { return tireModelType; }
 
             set
@@ -708,21 +790,21 @@ namespace SimBridge.Database
         public event PropertyChangedEventHandler PropertyChanged;
     }
 
-    public class TireType : INotifyPropertyChanged, IEquatable<TireType>
+    public class TireModelType : INotifyPropertyChanged, IEquatable<TireModelType>
     {
-        int tireTypeID;
+        int tireModelTypeID;
         bool requiresCDTFile;
         string description;
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int TireTypeID
+        public int TireModelTypeID
         {
-            get { return tireTypeID; }
+            get { return tireModelTypeID; }
 
             set
             {
-                tireTypeID = value;
+                tireModelTypeID = value;
                 OnPropertyChanged();
             }
         }
@@ -750,14 +832,14 @@ namespace SimBridge.Database
         }
 
         //override equal check for combobox binding assistance
-        public bool Equals(TireType other)
+        public bool Equals(TireModelType other)
         {
-            return other != null && TireTypeID == other.TireTypeID;
+            return other != null && TireModelTypeID == other.TireModelTypeID;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(TireTypeID);
+            return HashCode.Combine(TireModelTypeID);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
