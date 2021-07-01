@@ -18,10 +18,9 @@ namespace SimBridge.Database
         public DbSet<TireModelType> TireTypes { get; set; }
         public DbSet<Location> Locations { get; set; }
         public DbSet<Maneuver> Maneuvers { get; set; }
-       
         public DbSet<StepStartingCondition> StepStartingConditions { get; set; }
-
         public DbSet<SpeedUnit> SpeedUnits { get; set; }
+        public DbSet<LocationLapTimeConfigurationDRD> LocationLapTimeConfigurationDRDs { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -33,41 +32,49 @@ namespace SimBridge.Database
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //add init Tire model Types
-            modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 1,Description = "CD Tire", RequiresCDTFile = true});
-            modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 2, Description = "MF Tire", RequiresCDTFile = false });
-            modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 3, Description = "MF Swift", RequiresCDTFile = false });
+            try
+            {
+                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 1, Description = "CD Tire", RequiresCDTFile = true });
+                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 2, Description = "MF Tire", RequiresCDTFile = false });
+                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 3, Description = "MF Swift", RequiresCDTFile = false });
 
-            //add init locations
-            modelBuilder.Entity<Location>().HasData(new Location { LocationID = 1, Description = "3 Lane Highway" });
-            modelBuilder.Entity<Location>().HasData(new Location { LocationID = 2, Description = "Virginia International Raceway" });
-            modelBuilder.Entity<Location>().HasData(new Location { LocationID = 3, Description = "Nurburgring" });
-            modelBuilder.Entity<Location>().HasData(new Location { LocationID = 4, Description = "VDA" });
+                //add init locations
+                modelBuilder.Entity<Location>().HasData(new Location { LocationID = 1, Description = "3 Lane Highway" });
+                modelBuilder.Entity<Location>().HasData(new Location { LocationID = 2, Description = "Virginia International Raceway" });
+                modelBuilder.Entity<Location>().HasData(new Location { LocationID = 3, Description = "Nurburgring" });
+                modelBuilder.Entity<Location>().HasData(new Location { LocationID = 4, Description = "VDA" });
 
-            //cars
-            modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Race car" });
-            modelBuilder.Entity<Car>().HasData(new Car { CarID = 2, Description = "Jeep Grand Cherokee wk18" });
-            modelBuilder.Entity<Car>().HasData(new Car { CarID = 3, Description = "Golf 8" });
-            modelBuilder.Entity<Car>().HasData(new Car { CarID = 4, Description = "Sedan Car" });
-            modelBuilder.Entity<Car>().HasData(new Car { CarID = 5, Description = "Compact Car" });
+                //cars
+                modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Race car" });
+                modelBuilder.Entity<Car>().HasData(new Car { CarID = 2, Description = "Jeep Grand Cherokee wk18" });
+                modelBuilder.Entity<Car>().HasData(new Car { CarID = 3, Description = "Golf 8" });
+                modelBuilder.Entity<Car>().HasData(new Car { CarID = 4, Description = "Sedan Car" });
+                modelBuilder.Entity<Car>().HasData(new Car { CarID = 5, Description = "Compact Car" });
 
-            //Maneuvers...
-            modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 1, Description = "Slalom" });
-            modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 2, Description = "On-Center" });
-            modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 3, Description = "Double Lane Change" });
-            modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 4, Description = "Performance" });
+                //Maneuvers...
+                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 1, Description = "Slalom" });
+                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 2, Description = "On-Center" });
+                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 3, Description = "Double Lane Change" });
+                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 4, Description = "Performance" });
 
-            // how fastsss
-            modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 1, Description = "m/s", ConversionFactor = 1});
-            modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 2, Description = "km/h", ConversionFactor = 0.27778 });
-            modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 3, Description = "mph", ConversionFactor = 0.44704 });
-            modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 4, Description = "knot", ConversionFactor = 0.514444 });
+                // how fastsss
+                modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 1, Description = "m/s", ConversionFactor = 1 });
+                modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 2, Description = "km/h", ConversionFactor = 0.27778 });
+                modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 3, Description = "mph", ConversionFactor = 0.44704 });
+                modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 4, Description = "knot", ConversionFactor = 0.514444 });
 
-            //default init conidtions
-            modelBuilder.Entity<StepStartingCondition>().HasData(new StepStartingCondition { SetStartingConditionID = 1, InitSpeedUnitsID=1 });
+                //default init conidtions
+                modelBuilder.Entity<StepStartingCondition>().HasData(new StepStartingCondition {Name = "Default", SetStartingConditionID = 1, InitSpeedUnitID = 1 });
+                modelBuilder.Entity<StepStartingCondition>().HasData(new StepStartingCondition { Name = "Not Zero", SetStartingConditionID = 2, InitSpeedUnitID = 2 });
 
+                //course configurations/drd links
+                modelBuilder.Entity<LocationLapTimeConfigurationDRD>().HasData(new LocationLapTimeConfigurationDRD { Description = "Generic",LocationLapTimeConfigurationDRDID = 1 });
+            }
+            catch (Exception)
+            {
+                throw;
+            }  
         }
-
-
     }
 
     [Index(nameof(TestNumber))]
@@ -162,7 +169,6 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-
     public class Maneuver : INotifyPropertyChanged, IEquatable<Maneuver>
     {
         int maneuverID;
@@ -223,7 +229,6 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-
     public class Car : INotifyPropertyChanged
     {
         [Key]
@@ -239,10 +244,14 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-   
-   
     public class StepStartingCondition : INotifyPropertyChanged
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int SetStartingConditionID { get; set; }
+
+        public string Name { get; set; }
+
         private int initPositionX;
         private int initPositionY;
         private int initPositionZ;
@@ -253,12 +262,10 @@ namespace SimBridge.Database
 
         private int initGear;
         private int initSpeed;
-        private int initSpeedUnitsID;
+        private int initSpeedUnitID;
 
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int SetStartingConditionID { get; set; }
-      
+        private SpeedUnit initSpeedUnit;
+
         public int InitPositionX
         {
             get { return initPositionX; }
@@ -331,16 +338,27 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
-        public int InitSpeedUnitsID
+        public int InitSpeedUnitID
         {
-            get { return initSpeedUnitsID; }
+            get { return initSpeedUnitID; }
 
             set
             {
-                initSpeedUnitsID = value;
+                initSpeedUnitID = value;
                 OnPropertyChanged();
             }
         }
+        public SpeedUnit InitSpeedUnit
+        {
+            get { return initSpeedUnit; }
+
+            set
+            {
+                initSpeedUnit = value;
+                OnPropertyChanged();
+            }
+        }
+        
 
         public int InitGear
         {
@@ -360,8 +378,6 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-
-
     public class Location : INotifyPropertyChanged, IEquatable<Location>
     {
         int locationID;
@@ -410,7 +426,6 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-
     public class Step : INotifyPropertyChanged
     {
         private int stepID;
@@ -420,10 +435,11 @@ namespace SimBridge.Database
         private int maneuverID;
         private int initStepStartingConditionID;
         private string comment;
-        private string generatedSentFilePath;
+        private string generatedSendFilePath;
         private bool validated;
 
         private bool overrideStartingCondition;
+        private bool enableAutomaticLapTimer;
 
         private int initPositionX;
         private int initPositionY;
@@ -437,13 +453,14 @@ namespace SimBridge.Database
         private int initSpeed;
 
         private int initSpeedUnitID;
+        private int LocationLapTimeConfigurationDRDID;
 
         private SpeedUnit initSpeedUnit;
         private StepStartingCondition initStepStartingCondition;
         private TireModelType tireModelType;
         private Location stepLocation;
         private Maneuver stepManeuver;
-
+        private LocationLapTimeConfigurationDRD steplocationLapTimeConfigurationDRD;
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -454,6 +471,17 @@ namespace SimBridge.Database
             set
             {
                 stepID = value;
+                OnPropertyChanged();
+            }
+        }
+        
+        public bool EnableAutomaticLapTimer
+        {
+            get { return enableAutomaticLapTimer; }
+
+            set
+            {
+                enableAutomaticLapTimer = value;
                 OnPropertyChanged();
             }
         }
@@ -574,7 +602,7 @@ namespace SimBridge.Database
             }
         }
 
-        public StepStartingCondition? InitStepStartingCondition
+        public StepStartingCondition InitStepStartingCondition
         {
             get { return initStepStartingCondition; }
 
@@ -607,13 +635,13 @@ namespace SimBridge.Database
             }
         }
 
-        public string GeneratedSentFilePath
+        public string GeneratedSendFilePath
         {
-            get { return generatedSentFilePath; }
+            get { return generatedSendFilePath; }
 
             set
             {
-                generatedSentFilePath = value;
+                generatedSendFilePath = value;
                 OnPropertyChanged();
             }
         }
@@ -674,6 +702,17 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
+        public LocationLapTimeConfigurationDRD SteplocationLapTimeConfigurationDRD
+        {
+            get { return steplocationLapTimeConfigurationDRD; }
+
+            set
+            {
+                steplocationLapTimeConfigurationDRD = value;
+                OnPropertyChanged();
+            }
+        }
+        
         public Maneuver StepManeuver
         {
             get { return stepManeuver; }
@@ -727,7 +766,6 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-
     public class Tire : INotifyPropertyChanged
     {
         private string tirePath;
@@ -789,7 +827,6 @@ namespace SimBridge.Database
 
         public event PropertyChangedEventHandler PropertyChanged;
     }
-
     public class TireModelType : INotifyPropertyChanged, IEquatable<TireModelType>
     {
         int tireModelTypeID;
@@ -850,6 +887,53 @@ namespace SimBridge.Database
         }
     }
 
+    public class LocationLapTimeConfigurationDRD : INotifyPropertyChanged, IEquatable<LocationLapTimeConfigurationDRD>
+    {
+        int locationLapTimeConfigurationDRDID;
+        string description;
+
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int LocationLapTimeConfigurationDRDID
+        {
+            get { return locationLapTimeConfigurationDRDID; }
+
+            set
+            {
+                locationLapTimeConfigurationDRDID = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Description
+        {
+            get { return description; }
+
+            set
+            {
+                description = value;
+                OnPropertyChanged();
+            }
+        }
+
+        //override equal check for combobox binding assistance
+        public bool Equals(LocationLapTimeConfigurationDRD other)
+        {
+            return other != null && LocationLapTimeConfigurationDRDID == other.LocationLapTimeConfigurationDRDID;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(LocationLapTimeConfigurationDRDID);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+    }
     public class SpeedUnit : INotifyPropertyChanged, IEquatable<SpeedUnit>
     {
         int speedUnitID;

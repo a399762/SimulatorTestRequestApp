@@ -47,7 +47,9 @@ namespace SimBridge.Database
                                                     .Include(i => i.Steps).ThenInclude(i => i.FRTire)
                                                     .Include(i => i.Steps).ThenInclude(i => i.RLTire)
                                                     .Include(i => i.Steps).ThenInclude(i => i.RRTire)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.SteplocationLapTimeConfigurationDRD)
                                                     .Include(i => i.Steps).ThenInclude(i => i.InitStepStartingCondition)
+                                                    .Include(i => i.Steps).ThenInclude(i => i.InitStepStartingCondition).ThenInclude(i => i.InitSpeedUnit)
                                                     .Include(i => i.Car).FirstOrDefault(i => i.TestRequestID == testRequestID);
             return result;
         }

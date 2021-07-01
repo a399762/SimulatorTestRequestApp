@@ -35,6 +35,7 @@
         <vm1:FileFromPathConverter x:Key="FileFromPathConverter" />
         <vm1:StringToNumberConverter x:Key="StringToNumberConverter" />
         <vm1:IsIntEqualEnumConverter x:Key="IsIntEqualEnumConverter" />
+        <vm1:InverseBooleanConverter x:Key="InverseBooleanConverter" />
         <SolidColorBrush x:Key="clBr" Color="LightBlue" />
     </Window.Resources>
     <DockPanel >
@@ -112,7 +113,7 @@
                                         <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="Button_ClickAsync" />
                                         <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="Button_ClickAsync" />
                                         <TextBlock Grid.Column="2"  Margin="5,1,1,1" Text="{Binding CurrentWorkingTestRequest.SendFilePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
-                                       
+
                                         <Image Grid.Column="3" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
                                         <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
                                     </Grid>
@@ -211,127 +212,215 @@
                                                 SelectedValuePath="ManeuverID"
                                                 SelectedItem="{Binding Path=CurrentTestRequestStep.StepManeuver}"
                                                 HorizontalAlignment="Left"
-                                                Width="250"></ComboBox>
-                                             
+                                                Width="250"></ComboBox> 
+
                                             <GroupBox Header="Lap Timer:" Margin="0,10" HorizontalContentAlignment="Left" HorizontalAlignment="Left"  >
                                                 <StackPanel>
-                                                    <CheckBox>Enable Automatic Lap Timer in Send File?</CheckBox>
-                                                    <!--<ComboBox DockPanel.Dock="Top" 
-                                                        ItemsSource="{Binding d}"
+                                                    <CheckBox IsChecked="{Binding CurrentTestRequestStep.EnableAutomaticLapTimer}" >Enable Automatic Lap Timer in Send File?</CheckBox>
+                                                    <ComboBox DockPanel.Dock="Top" IsEnabled="{Binding CurrentTestRequestStep.EnableAutomaticLapTimer,Converter={StaticResource InverseBooleanConverter}}"  
+                                                        ItemsSource="{Binding LocationLapTimeConfigurationDRDs}"
                                                         DisplayMemberPath="Description"
-                                                        SelectedValuePath="ManeuverID"
-                                                        SelectedItem="{Binding Path=CurrentTestRequestStep.StepManeuver}"
-                                                        HorizontalAlignment="Left"
-                                                        Width="250"></ComboBox> -->
-                                                    </StackPanel>
+                                                        SelectedValuePath="LocationLapTimeConfigurationDRDID"
+                                                        SelectedItem="{Binding Path=CurrentTestRequestStep.SteplocationLapTimeConfigurationDRD}"
+                                                        HorizontalAlignment="Stretch"
+                                                        ></ComboBox>
+                                                </StackPanel>
                                             </GroupBox>
                                             <GroupBox Header="Vehicle Starting Conditions:" Margin="0,10" HorizontalContentAlignment="Left" HorizontalAlignment="Left"  >
 
                                                 <StackPanel Orientation="Horizontal">
 
-
-                                                    <ListBox Width="200">
-                                                        
-                                                    </ListBox>
-                                                   
+                                                    <ListBox IsEnabled="{Binding CurrentTestRequestStep.OverrideStartingCondition, Converter={StaticResource InverseBooleanConverter}}" Width="200" ItemsSource="{Binding StepStartingConditions}" 
+                                                         SelectedItem ="{Binding CurrentTestRequestStep.InitStepStartingCondition}" 
+                                                         SelectedValuePath="SetStartingConditionID" DisplayMemberPath="Name" Margin="0,0,10,0" />
                                                     <StackPanel>
 
                                                         <CheckBox Content="Manual Override Starting Conditions" IsChecked="{Binding CurrentTestRequestStep.OverrideStartingCondition}"></CheckBox>
 
                                                         <StackPanel  IsEnabled="{Binding CurrentTestRequestStep.OverrideStartingCondition, TargetNullValue=False}">
                                                             <Grid DockPanel.Dock="Top">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <Grid.RowDefinitions>
-                                                                <RowDefinition />
-                                                                <RowDefinition />
-                                                            </Grid.RowDefinitions>
-                                                            <Label Margin="4"  Grid.Column="0">Initial Speed:</Label>
-                                                            <TextBox Margin="4"  Grid.Column="1" HorizontalAlignment="Right" Width="100"  Text="{Binding CurrentTestRequestStep.InitSpeed ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" Background="White"  >
-                                                                <i1:Interaction.Behaviors>
-                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
-                                                                </i1:Interaction.Behaviors>
-                                                            </TextBox>
-                                                            <ComboBox 
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="auto" />
+                                                                    <ColumnDefinition Width="auto" />
+                                                                    <ColumnDefinition Width="auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition />
+                                                                    <RowDefinition />
+                                                                </Grid.RowDefinitions>
+                                                                <Label Margin="4"  Grid.Column="0">Initial Speed:</Label>
+                                                                <TextBox Margin="4"  Grid.Column="1" HorizontalAlignment="Right" Width="100"   Background="White"  >
+                                                                    <i1:Interaction.Behaviors>
+                                                                        <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                    </i1:Interaction.Behaviors>
+                                                                    <TextBox.Style>
+                                                                        <Style TargetType="TextBox">
+                                                                            <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitStepStartingCondition.InitSpeed ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding CurrentTestRequestStep.OverrideStartingCondition}" Value="True">
+                                                                                    <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitSpeed ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBox.Style>
+                                                                </TextBox>
+                                                                <ComboBox 
                                                                 Margin="4" 
                                                                 Grid.Column="2"
                                                                 ItemsSource="{Binding SpeedUnits}"
                                                                 DisplayMemberPath="Description"
                                                                 SelectedValuePath="SpeedUnitID"
-                                                                SelectedItem="{Binding Path=CurrentTestRequestStep.InitSpeedUnit}"
                                                                 HorizontalAlignment="Left"
-                                                                Width="80"></ComboBox>
-                                                            <Label Margin="4"  Grid.Column="0" Grid.Row="1" >Initial Gear:</Label>
+                                                                Width="80">
+                                                                    <ComboBox.Style>
+                                                                        <Style TargetType="ComboBox">
+                                                                            <Setter Property="SelectedItem" Value="{Binding CurrentTestRequestStep.InitStepStartingCondition.InitSpeedUnit}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding CurrentTestRequestStep.OverrideStartingCondition}" Value="True">
+                                                                                    <Setter Property="SelectedItem" Value="{Binding CurrentTestRequestStep.InitSpeedUnit}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </ComboBox.Style>
 
-                                                            <TextBox Margin="4"  Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" Width="50" MaxLength="1" Text="{Binding CurrentTestRequestStep.InitGear,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
-                                                                <i1:Interaction.Behaviors>
-                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
-                                                                </i1:Interaction.Behaviors>
-                                                            </TextBox>
 
-                                                        </Grid>
-                                                        <Grid DockPanel.Dock="Top">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                                <ColumnDefinition Width="auto" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <Grid.RowDefinitions>
-                                                                <RowDefinition />
-                                                                <RowDefinition />
-                                                            </Grid.RowDefinitions>
-                                                            <Label  Margin="4" Grid.Column="0" Grid.Row="0" >X</Label>
-                                                            <TextBox  Margin="4" Grid.Column="1" Grid.Row="0" Width="80"  Text="{Binding CurrentTestRequestStep.InitPositionX,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
-                                                                <i1:Interaction.Behaviors>
-                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
-                                                                </i1:Interaction.Behaviors>
-                                                            </TextBox>
-                                                            <Label Margin="4"  Grid.Column="2" Grid.Row="0">Y</Label>
-                                                            <TextBox Margin="4" Grid.Column="3" Grid.Row="0" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionY,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
-                                                                <i1:Interaction.Behaviors>
-                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
-                                                                </i1:Interaction.Behaviors>
-                                                            </TextBox>
-                                                            <Label Margin="4" Grid.Column="4" Grid.Row="0">Z</Label>
-                                                            <TextBox Margin="4" Grid.Column="5" Grid.Row="0" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionZ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
-                                                                <i1:Interaction.Behaviors>
-                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
-                                                                </i1:Interaction.Behaviors>
-                                                            </TextBox>
-                                                            <Label Margin="4" Grid.Column="0" Grid.Row="1">rX</Label>
-                                                            <TextBox Margin="4" Grid.Column="1" Grid.Row="1" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionRX,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
-                                                                <i1:Interaction.Behaviors>
-                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
-                                                                </i1:Interaction.Behaviors>
-                                                            </TextBox>
-                                                            <Label Margin="4" Grid.Column="2" Grid.Row="1">rY</Label>
-                                                            <TextBox Margin="4" Grid.Column="3" Grid.Row="1" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionRY,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
-                                                                <i1:Interaction.Behaviors>
-                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
-                                                                </i1:Interaction.Behaviors>
-                                                            </TextBox>
-                                                            <Label Margin="4" Grid.Column="4" Grid.Row="1">rZ</Label>
-                                                            <TextBox Margin="4" Grid.Column="5" Grid.Row="1" Width="80" Text="{Binding CurrentTestRequestStep.InitPositionRZ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}">
-                                                                <i1:Interaction.Behaviors>
-                                                                    <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
-                                                                </i1:Interaction.Behaviors>
-                                                            </TextBox>
-                                                        </Grid>
+                                                                </ComboBox>
+                                                                <Label Margin="4"  Grid.Column="0" Grid.Row="1" >Initial Gear:</Label>
+                                                                <TextBox Margin="4"  Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left" Width="50"   MaxLength="1" Background="White"  >
+                                                                    <i1:Interaction.Behaviors>
+                                                                        <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                    </i1:Interaction.Behaviors>
+                                                                    <TextBox.Style>
+                                                                        <Style TargetType="TextBox">
+                                                                            <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitStepStartingCondition.InitGear ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding CurrentTestRequestStep.OverrideStartingCondition}" Value="True">
+                                                                                    <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitGear ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBox.Style>
+                                                                </TextBox>
+                                                            </Grid>
+                                                            <Grid DockPanel.Dock="Top">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="auto" />
+                                                                    <ColumnDefinition Width="auto" />
+                                                                    <ColumnDefinition Width="auto" />
+                                                                    <ColumnDefinition Width="auto" />
+                                                                    <ColumnDefinition Width="auto" />
+                                                                    <ColumnDefinition Width="auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition />
+                                                                    <RowDefinition />
+                                                                </Grid.RowDefinitions>
+                                                                <Label  Margin="4" Grid.Column="0" Grid.Row="0" >X</Label>
+                                                                <TextBox Margin="4" Grid.Column="1" Grid.Row="0" Width="80"  >
+                                                                    <i1:Interaction.Behaviors>
+                                                                        <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                    </i1:Interaction.Behaviors>
+                                                                    <TextBox.Style>
+                                                                        <Style TargetType="TextBox">
+                                                                            <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitStepStartingCondition.InitPositionX ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding CurrentTestRequestStep.OverrideStartingCondition}" Value="True">
+                                                                                    <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitPositionX ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBox.Style>
+                                                                </TextBox>
+                                                                <Label Margin="4"  Grid.Column="2" Grid.Row="0">Y</Label>
+                                                                <TextBox Margin="4" Grid.Column="3" Grid.Row="0" Width="80" >
+                                                                    <i1:Interaction.Behaviors>
+                                                                        <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                    </i1:Interaction.Behaviors>
+                                                                    <TextBox.Style>
+                                                                        <Style TargetType="TextBox">
+                                                                            <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitStepStartingCondition.InitPositionY ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding CurrentTestRequestStep.OverrideStartingCondition}" Value="True">
+                                                                                    <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitPositionY ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBox.Style>
+                                                                </TextBox>
+                                                                <Label Margin="4" Grid.Column="4" Grid.Row="0">Z</Label>
+                                                                <TextBox Margin="4" Grid.Column="5" Grid.Row="0" Width="80" >
+                                                                    <i1:Interaction.Behaviors>
+                                                                        <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                    </i1:Interaction.Behaviors>
+                                                                    <TextBox.Style>
+                                                                        <Style TargetType="TextBox">
+                                                                            <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitStepStartingCondition.InitPositionZ ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding CurrentTestRequestStep.OverrideStartingCondition}" Value="True">
+                                                                                    <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitPositionZ ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBox.Style>
+                                                                </TextBox>
+                                                                <Label Margin="4" Grid.Column="0" Grid.Row="1">rX</Label>
+                                                                <TextBox Margin="4" Grid.Column="1" Grid.Row="1" Width="80" >
+                                                                    <i1:Interaction.Behaviors>
+                                                                        <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                    </i1:Interaction.Behaviors>
+                                                                    <TextBox.Style>
+                                                                        <Style TargetType="TextBox">
+                                                                            <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitStepStartingCondition.InitPositionRX ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding CurrentTestRequestStep.OverrideStartingCondition}" Value="True">
+                                                                                    <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitPositionRX ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBox.Style>
+                                                                </TextBox>
+                                                                <Label Margin="4" Grid.Column="2" Grid.Row="1">rY</Label>
+                                                                <TextBox Margin="4" Grid.Column="3" Grid.Row="1" Width="80" >
+                                                                    <i1:Interaction.Behaviors>
+                                                                        <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                    </i1:Interaction.Behaviors>
+                                                                    <TextBox.Style>
+                                                                        <Style TargetType="TextBox">
+                                                                            <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitStepStartingCondition.InitPositionRY ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding CurrentTestRequestStep.OverrideStartingCondition}" Value="True">
+                                                                                    <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitPositionRY ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBox.Style>
+                                                                </TextBox>
+                                                                <Label Margin="4" Grid.Column="4" Grid.Row="1">rZ</Label>
+                                                                <TextBox Margin="4" Grid.Column="5" Grid.Row="1" Width="80" >
+                                                                    <i1:Interaction.Behaviors>
+                                                                        <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Int32}" />
+                                                                    </i1:Interaction.Behaviors>
+                                                                    <TextBox.Style>
+                                                                        <Style TargetType="TextBox">
+                                                                            <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitStepStartingCondition.InitPositionRZ ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding CurrentTestRequestStep.OverrideStartingCondition}" Value="True">
+                                                                                    <Setter Property="Text" Value="{Binding CurrentTestRequestStep.InitPositionRZ ,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBox.Style>
+                                                                </TextBox>
+                                                            </Grid>
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </StackPanel>
-                                                
-                                              
-                                                
-                                                
-                                                
-                                                
+
+
+
+
+
+
                                             </GroupBox>
                                         </StackPanel>
                                     </TabItem>
@@ -377,7 +466,7 @@
                                                             <Label Grid.Column="3" DockPanel.Dock="Left">psi</Label>
                                                         </Grid>
                                                         <Grid Margin="10">
-                                                           
+
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="auto" />
                                                                 <ColumnDefinition Width="auto"  />
@@ -530,7 +619,7 @@
                                                             <TextBlock Grid.Row="1" Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.RLTire.CDT31TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" />
                                                             <Image Grid.Row="1" Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
                                                             <Image Grid.Row="1" Grid.Column="5" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
-                                                            
+
                                                         </Grid>
                                                         <Separator></Separator>
 

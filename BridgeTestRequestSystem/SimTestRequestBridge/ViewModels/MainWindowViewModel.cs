@@ -34,7 +34,8 @@ namespace SimTestRequestBridge.ViewModels
         private ObservableCollection<Location> locations = new ObservableCollection<Location>();
         private ObservableCollection<Maneuver> maneuvers = new ObservableCollection<Maneuver>();
         private ObservableCollection<SpeedUnit> speedUnits = new ObservableCollection<SpeedUnit>();
-        
+        private ObservableCollection<StepStartingCondition> stepStartingConditions = new ObservableCollection<StepStartingCondition>();
+        private ObservableCollection<LocationLapTimeConfigurationDRD> locationLapTimeConfigurationDRDs = new ObservableCollection<LocationLapTimeConfigurationDRD>();
         //one to keep track of what is selected that is loaded minimally, the other to actively modify, it has all the things in it....
         private TestRequest currentSelectedTestRequest;
         private TestRequest currentWorkingTestRequest;
@@ -319,6 +320,12 @@ namespace SimTestRequestBridge.ViewModels
                     Maneuvers = new ObservableCollection<Maneuver>(maneuvers);
                 else
                     Maneuvers = new ObservableCollection<Maneuver>();
+
+                var startingContitions = currentWorkingContext.StepStartingConditions.ToList();
+                if (startingContitions != null)
+                    StepStartingConditions = new ObservableCollection<StepStartingCondition>(startingContitions);
+                else
+                    StepStartingConditions = new ObservableCollection<StepStartingCondition>();
             }
           
          //   }
@@ -531,12 +538,16 @@ namespace SimTestRequestBridge.ViewModels
                 step.FRTire = rf;
                 step.RRTire = rr;
                 step.RLTire = lr;
-                
+
+
+                step.EnableAutomaticLapTimer = true;
+                step.SteplocationLapTimeConfigurationDRD = null;
                 step.TireModelType = currentWorkingContext.TireTypes.FirstOrDefault();
                 step.InitStepStartingCondition = currentWorkingContext.StepStartingConditions.FirstOrDefault();
                 step.StepLocation = currentWorkingContext.Locations.FirstOrDefault();
                 step.StepManeuver = currentWorkingContext.Maneuvers.FirstOrDefault();
-          
+                step.InitSpeedUnit = currentWorkingContext.SpeedUnits.FirstOrDefault();
+                
                 //get next number to use based on existing - 1 based
                 var newNumber = currentWorkingTestRequestSteps.Count() + 1;
                 step.StepNumber = newNumber;
@@ -749,6 +760,32 @@ namespace SimTestRequestBridge.ViewModels
             }
         }
 
+        public ObservableCollection<StepStartingCondition> StepStartingConditions
+        {
+            get
+            {
+                return stepStartingConditions;
+            }
+            set
+            {
+                stepStartingConditions = value;
+                OnPropertyChanged();
+            }
+        }
+        public ObservableCollection<LocationLapTimeConfigurationDRD> LocationLapTimeConfigurationDRDs
+        {
+            get
+            {
+                return locationLapTimeConfigurationDRDs;
+            }
+            set
+            {
+                locationLapTimeConfigurationDRDs = value;
+                OnPropertyChanged();
+            }
+        }
+
+        
         public ObservableCollection<Maneuver> Maneuvers
         {
             get
