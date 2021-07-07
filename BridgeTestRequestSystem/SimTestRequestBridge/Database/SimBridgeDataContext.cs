@@ -65,7 +65,7 @@ namespace SimBridge.Database
 
                 //default init conidtions
                 modelBuilder.Entity<StepStartingCondition>().HasData(new StepStartingCondition {Name = "Default", SetStartingConditionID = 1, InitSpeedUnitID = 1 });
-                modelBuilder.Entity<StepStartingCondition>().HasData(new StepStartingCondition { Name = "Not Zero", SetStartingConditionID = 2, InitSpeedUnitID = 2 });
+                modelBuilder.Entity<StepStartingCondition>().HasData(new StepStartingCondition { Name = "Not Zero", InitPositionX = 1,InitPositionY = 1, SetStartingConditionID = 2, InitSpeedUnitID = 2 });
 
                 //course configurations/drd links
                 modelBuilder.Entity<LocationLapTimeConfigurationDRD>().HasData(new LocationLapTimeConfigurationDRD { Description = "Generic",LocationLapTimeConfigurationDRDID = 1 });
@@ -745,11 +745,11 @@ namespace SimBridge.Database
             }
         }
 
-        public Tire FLTire { get; set; }
+        public Tire LFTire { get; set; }
 
-        public Tire FRTire { get; set; }
+        public Tire LRTire { get; set; }
 
-        public Tire RLTire { get; set; }
+        public Tire RFTire { get; set; }
 
         public Tire RRTire { get; set; }
 

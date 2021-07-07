@@ -111,7 +111,7 @@
                                             <RowDefinition  />
                                         </Grid.RowDefinitions>
                                         <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="Button_ClickAsync" />
-                                        <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="Button_ClickAsync" />
+                                        <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="Button_Click_3" />
                                         <TextBlock Grid.Column="2"  Margin="5,1,1,1" Text="{Binding CurrentWorkingTestRequest.SendFilePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
 
                                         <Image Grid.Column="3" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
@@ -124,6 +124,7 @@
                             <TabItem Header="OTHER??" >
                                 <StackPanel Margin="10" Grid.Column="0">
                                     <Button  Content="Open Staging Folder" Click="Button_Click" />
+                                    <Button  Content="Clear Staging Folder" Click="Button_Click_1" />
                                 </StackPanel>
                             </TabItem>
                         </TabControl>
@@ -158,9 +159,9 @@
                                     <DataGridTextColumn Header="Location" Binding="{Binding StepLocation.Description}"/>
                                     <DataGridTextColumn Header="Maneuver" Binding="{Binding StepManeuver.Description}"/>
                                     <DataGridTextColumn Header="Tire Model" Binding="{Binding TireModelType.Description}"/>
-                                    <DataGridTextColumn Header="FL Tire" Binding="{Binding FLTire.Construction}"/>
-                                    <DataGridTextColumn Header="FR Tire" Binding="{Binding FRTire.Construction}"/>
-                                    <DataGridTextColumn Header="RL Tire" Binding="{Binding RLTire.Construction }"/>
+                                    <DataGridTextColumn Header="LF Tire" Binding="{Binding LFTire.Construction}"/>
+                                    <DataGridTextColumn Header="RF Tire" Binding="{Binding RFTire.Construction}"/>
+                                    <DataGridTextColumn Header="LR Tire" Binding="{Binding LRTire.Construction }"/>
                                     <DataGridTextColumn Header="RR Tire" Binding="{Binding RRTire.Construction}"/>
                                 </controls:CustomDataGrid.Columns>
                                 <controls:CustomDataGrid.Resources>
@@ -457,8 +458,8 @@
                                                                 <RowDefinition  />
                                                             </Grid.RowDefinitions>
                                                             <Label Grid.Column="0" DockPanel.Dock="Left">Left Front Tire:</Label>
-                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.FLTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
-                                                            <TextBox Grid.Column="2" Width="50" Text="{Binding CurrentTestRequestStep.FLTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
+                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.LFTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                                                            <TextBox Grid.Column="2" Width="50" Text="{Binding CurrentTestRequestStep.LFTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
                                                                 <i1:Interaction.Behaviors>
                                                                     <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Double}" />
                                                                 </i1:Interaction.Behaviors>
@@ -490,16 +491,16 @@
                                                                     </RowDefinition.Style>
                                                                 </RowDefinition>
                                                             </Grid.RowDefinitions>
-                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="FLBrowseButton_Click"/>
-                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="FLClearButton_Click" />
+                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="LFBrowseButton_Click"/>
+                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="LFClearButton_Click" />
 
                                                             <Label  Grid.Row="0"  Grid.Column="2"  Content=".tir File:"></Label>
-                                                            <TextBlock Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.FLTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
+                                                            <TextBlock Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.LFTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
                                                             <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
                                                             <Image Grid.Column="5" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
 
                                                             <Label  Grid.Row="1"  Grid.Column="2"  Content=".cdt31 File:"></Label>
-                                                            <TextBlock Grid.Row="1" Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.FLTire.CDT31TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
+                                                            <TextBlock Grid.Row="1" Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.LFTire.CDT31TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
                                                             <Image Grid.Row="1" Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
                                                             <Image Grid.Row="1" Grid.Column="5" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
                                                         </Grid>
@@ -516,8 +517,8 @@
                                                                 <RowDefinition  />
                                                             </Grid.RowDefinitions>
                                                             <Label Grid.Column="0" DockPanel.Dock="Left">Right Front Tire:</Label>
-                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.FRTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
-                                                            <TextBox Grid.Column="2"  Width="50" Text="{Binding CurrentTestRequestStep.FRTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
+                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.RFTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                                                            <TextBox Grid.Column="2"  Width="50" Text="{Binding CurrentTestRequestStep.RFTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
                                                                 <i1:Interaction.Behaviors>
                                                                     <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Double}" />
                                                                 </i1:Interaction.Behaviors>
@@ -548,16 +549,16 @@
                                                                     </RowDefinition.Style>
                                                                 </RowDefinition>
                                                             </Grid.RowDefinitions>
-                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="FRBrowseButton_Click"/>
-                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="FRClearButton_Click" />
+                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="RFBrowseButton_Click"/>
+                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="RFClearButton_Click" />
 
                                                             <Label  Grid.Row="0"  Grid.Column="2"  Content=".tir File:"></Label>
-                                                            <TextBlock Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.FRTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" />
+                                                            <TextBlock Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.RFTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" />
                                                             <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
                                                             <Image Grid.Column="5" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
 
                                                             <Label  Grid.Row="1"  Grid.Column="2"  Content=".cdt31 File:"></Label>
-                                                            <TextBlock Grid.Row="1" Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.FRTire.CDT31TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" />
+                                                            <TextBlock Grid.Row="1" Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.RFTire.CDT31TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" />
                                                             <Image Grid.Row="1" Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
                                                             <Image Grid.Row="1" Grid.Column="5" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
                                                         </Grid>
@@ -573,9 +574,9 @@
                                                                 <RowDefinition  />
                                                             </Grid.RowDefinitions>
                                                             <Label Grid.Column="0" DockPanel.Dock="Left">Left Rear Tire:</Label>
-                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.RLTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                                                            <TextBox Grid.Column="1" DockPanel.Dock="Left" Width="300" Text="{Binding CurrentTestRequestStep.LRTire.Construction, UpdateSourceTrigger=PropertyChanged}"></TextBox>
 
-                                                            <TextBox Grid.Column="2" Width="50" Text="{Binding CurrentTestRequestStep.RLTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
+                                                            <TextBox Grid.Column="2" Width="50" Text="{Binding CurrentTestRequestStep.LRTire.Pressure,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged , Converter={StaticResource StringToNumberConverter}}" >
                                                                 <i1:Interaction.Behaviors>
                                                                     <local:OnlyDigitalBehavior DigitalType="{x:Type clr:Double}" />
                                                                 </i1:Interaction.Behaviors>
@@ -607,16 +608,16 @@
                                                                 </RowDefinition>
                                                             </Grid.RowDefinitions>
 
-                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="RLBrowseButton_Click"/>
-                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="RLClearButton_Click" />
+                                                            <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="LRBrowseButton_Click"/>
+                                                            <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="LRClearButton_Click" />
 
                                                             <Label  Grid.Row="0"  Grid.Column="2"  Content=".tir File:"></Label>
-                                                            <TextBlock Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.RLTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" />
+                                                            <TextBlock Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.LRTire.TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" />
                                                             <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
                                                             <Image Grid.Column="5" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
 
                                                             <Label  Grid.Row="1"  Grid.Column="2"  Content=".cdt31 File:"></Label>
-                                                            <TextBlock Grid.Row="1" Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.RLTire.CDT31TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" />
+                                                            <TextBlock Grid.Row="1" Grid.Column="3"  Margin="5,1,1,1" Text="{Binding  CurrentTestRequestStep.LRTire.CDT31TirePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White" />
                                                             <Image Grid.Row="1" Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
                                                             <Image Grid.Row="1" Grid.Column="5" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
 

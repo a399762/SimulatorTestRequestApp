@@ -75,28 +75,26 @@ namespace SimTestRequestBridge.ViewModels
             if (!FileHelper.CreateStagingFolderIfNotExist(CurrentWorkingTestRequest.TestNumber, stagingPath))
                 return false;
 
-            //grab the correct tire to work on.
-            Tire tire;
             switch (locationsCode)
             {
-                case TireLocationsCodes.FL:
-                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.FLTire, currentTestRequestStep.TireModelTypeID, filenames);  
+                case TireLocationsCodes.LF:
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.LFTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);  
                     break;
-                case TireLocationsCodes.FR:
-                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.FRTire, currentTestRequestStep.TireModelTypeID, filenames);
+                case TireLocationsCodes.LR:
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.LRTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);
                     break;
-                case TireLocationsCodes.RL:
-                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RLTire, currentTestRequestStep.TireModelTypeID, filenames);
+                case TireLocationsCodes.RF:
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RFTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);
                     break;
                 case TireLocationsCodes.RR:
-                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RRTire, currentTestRequestStep.TireModelTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RRTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);
                     break;
                 case TireLocationsCodes.All:
 
-                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RLTire, currentTestRequestStep.TireModelTypeID, filenames);
-                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.FLTire, currentTestRequestStep.TireModelTypeID, filenames);
-                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.FRTire, currentTestRequestStep.TireModelTypeID, filenames);
-                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RRTire, currentTestRequestStep.TireModelTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.LFTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.LRTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RFTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.RRTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);
 
                     break;
                 default:
@@ -105,6 +103,35 @@ namespace SimTestRequestBridge.ViewModels
 
             OnPropertyChanged(nameof(CurrentWorkingTestRequest));//notify that we just updated test request with send file info
             return true;
+        }
+
+        internal void ClearCurrentTestRequestMasterCar()
+        {
+            //clear object in db, and remove file
+
+            string file = currentWorkingTestRequest.SendFilePath;
+           
+            if (File.Exists(file))
+            {
+                File.Delete(file);
+            }
+        
+            currentWorkingTestRequest.SendFilePath = null;
+        }
+
+        //clear staging folder, used during development,.. prolly not for prod
+        internal void ClearCurrentTestRequestStagingFolder()
+        {
+            DirectoryInfo di = new DirectoryInfo(GetCurrentStagingFolder());
+
+            foreach (FileInfo file in di.EnumerateFiles())
+            {
+                file.Delete();
+            }
+            foreach (DirectoryInfo dir in di.EnumerateDirectories())
+            {
+                dir.Delete(true);
+            }
         }
 
         private void Save_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -122,23 +149,23 @@ namespace SimTestRequestBridge.ViewModels
 
             switch (code)
             {
-                case TireLocationsCodes.FL:
-                    ClearStagedTireFiles(currentTestRequestStep.FLTire);
+                case TireLocationsCodes.LF:
+                    ClearStagedTireFiles(currentTestRequestStep.LFTire);
                     break;
-                case TireLocationsCodes.FR:
-                    ClearStagedTireFiles(currentTestRequestStep.FRTire);
+                case TireLocationsCodes.LR:
+                    ClearStagedTireFiles(currentTestRequestStep.LRTire);
                     break;
-                case TireLocationsCodes.RL:
-                    ClearStagedTireFiles(currentTestRequestStep.RLTire);
+                case TireLocationsCodes.RF:
+                    ClearStagedTireFiles(currentTestRequestStep.RFTire);
                     break;
                 case TireLocationsCodes.RR:
                     ClearStagedTireFiles(currentTestRequestStep.RRTire);
                     break;
                 case TireLocationsCodes.All:
                     //no button for this,.. just in case though
-                    ClearStagedTireFiles(currentTestRequestStep.FLTire);
-                    ClearStagedTireFiles(currentTestRequestStep.FRTire);
-                    ClearStagedTireFiles(currentTestRequestStep.RLTire);
+                    ClearStagedTireFiles(currentTestRequestStep.LFTire);
+                    ClearStagedTireFiles(currentTestRequestStep.LRTire);
+                    ClearStagedTireFiles(currentTestRequestStep.RFTire);
                     ClearStagedTireFiles(currentTestRequestStep.RRTire);
                     break;
                 default:
@@ -244,9 +271,9 @@ namespace SimTestRequestBridge.ViewModels
         internal bool ValidateTestRequestForStep(Step currentTestRequestStep, TestRequest currentSelectedTestRequest)
         {
             //check to make sure each tire has a tire path, and that we have a valid base send file path loaded 
-            if (CurrentWorkingTestRequest.SendFilePath != null && currentTestRequestStep.FLTire.TirePath != null && 
-                currentTestRequestStep.RLTire.TirePath != null && currentTestRequestStep.RRTire.TirePath != null && 
-                currentTestRequestStep.FRTire.TirePath != null)
+            if (CurrentWorkingTestRequest.SendFilePath != null && currentTestRequestStep.LFTire.TirePath != null && 
+                currentTestRequestStep.LRTire.TirePath != null && currentTestRequestStep.RRTire.TirePath != null && 
+                currentTestRequestStep.RFTire.TirePath != null)
             {
                 return true;
             }
@@ -264,8 +291,27 @@ namespace SimTestRequestBridge.ViewModels
                     return false;
             }
         }
+        public bool ValidateTestRequestSteps
+        {
+            get
+            {
+                if (currentTestRequestStep != null && currentSelectedTestRequest != null) 
+                {
+                    bool result = true;
 
-   
+                    foreach (var item in currentSelectedTestRequest.Steps)
+                    {
+                        if (!ValidateTestRequestForStep(currentTestRequestStep, currentSelectedTestRequest))
+                            result = false;
+                    }
+
+                    return result;
+                }
+                else
+                    return false;
+            }
+        }
+     
 
         private bool StageSendFile(TestRequest testRequest, string filename)
         {
@@ -389,7 +435,8 @@ namespace SimTestRequestBridge.ViewModels
         {
             try
             {
-                currentWorkingContext.SaveChanges();
+                if(currentWorkingContext != null)
+                    currentWorkingContext.SaveChanges();
             }
             catch (Exception e)
             {
@@ -490,26 +537,50 @@ namespace SimTestRequestBridge.ViewModels
             String rawSendFileXML = File.ReadAllText(originalSendFile);
             XDocument doc = XDocument.Parse(rawSendFileXML);
 
-            SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fl_tire_property_file, ConvertToMDISFormat(step.FLTire.TirePath), doc);
-            SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fr_tire_property_file, ConvertToMDISFormat(step.FLTire.TirePath), doc);
-            SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rl_tire_property_file, ConvertToMDISFormat(step.FLTire.TirePath), doc);
-            SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rr_tire_property_file, ConvertToMDISFormat(step.FLTire.TirePath), doc);
+            SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fl_tire_property_file, ConvertToTiresMDISFormat(step.LFTire.TirePath), doc);
+            SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rl_tire_property_file, ConvertToTiresMDISFormat(step.LRTire.TirePath), doc);
+            SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fr_tire_property_file, ConvertToTiresMDISFormat(step.RFTire.TirePath), doc);
+            SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rr_tire_property_file, ConvertToTiresMDISFormat(step.RRTire.TirePath), doc);
 
-            //place it next to the original send file for now
-            var path = Path.GetDirectoryName(originalSendFile);
+            StepStartingCondition tempStartingCondition; 
+            if (step.OverrideStartingCondition)
+            {
+                tempStartingCondition = new StepStartingCondition();
+                tempStartingCondition.InitPositionX = step.InitPositionX;
+                tempStartingCondition.InitPositionY = step.InitPositionX;
+                tempStartingCondition.InitPositionZ = step.InitPositionX;
+            }
+            else
+            {
+                tempStartingCondition = step.InitStepStartingCondition;
+            }
+
+            SendFileHelper.SetStartingPosition(SendFileHelper.VehiclUserLocation.vehicle_user_location_x, tempStartingCondition.InitPositionX, doc);
+            SendFileHelper.SetStartingPosition(SendFileHelper.VehiclUserLocation.vehicle_user_location_y, tempStartingCondition.InitPositionY, doc);
+            SendFileHelper.SetStartingPosition(SendFileHelper.VehiclUserLocation.vehicle_user_location_z, tempStartingCondition.InitPositionZ, doc);
+            SendFileHelper.SetStartingPosition(SendFileHelper.VehiclUserLocation.vehicle_user_location_roll, tempStartingCondition.InitPositionRX, doc);
+            SendFileHelper.SetStartingPosition(SendFileHelper.VehiclUserLocation.vehicle_user_location_pitch, tempStartingCondition.InitPositionRY, doc);
+            SendFileHelper.SetStartingPosition(SendFileHelper.VehiclUserLocation.vehicle_user_location_yaw, tempStartingCondition.InitPositionRZ, doc);
 
             //where do we want to save...
-            var stepSendFilePath = FileHelper.GetSendFilesStagingFolderForTestRequest(testRequest.TestNumber, stagingPath) + @"\" + step + "_" + testRequest.Car.Description + "_" + step.LocationID + "_" + step.FLTire.Construction + "_" + step.FRTire.Construction + "_" + step.RLTire.Construction + "_" + step.RRTire.Construction + ".xml";
+            var stepSendFilePath = FileHelper.GetSendFilesStagingFolderForTestRequest(testRequest.TestNumber, stagingPath) + @"\" + step.StepNumber + "_" + step.LFTire.Construction + "_" + step.RFTire.Construction + "_" + step.LRTire.Construction + "_" + step.RRTire.Construction + ".xml";
+
+            //check to see if we have a vicrtcdb.cfg made yet
+            //create if not
+            FileHelper.CreateVICRTCDBCFGIfNotExist(testRequest.TestNumber,stagingPath);
+            
+            
             doc.Save(stepSendFilePath);
         }
 
-        private string ConvertToMDISFormat(string tirePath)
+        private string ConvertToTiresMDISFormat(string tirePath)
         {
+            //grab file name 
+            string tireFileName = Path.GetFileName(tirePath);
 
-
-
-
-            return tirePath;
+            //append it to the tire mdis target, cfg will tell vi where to find it on the HD
+            string value = "mdids://Tires/" + tireFileName;
+            return value;
         }
 
         private void AddNewStepToCurrentTestRequest()
@@ -534,10 +605,10 @@ namespace SimTestRequestBridge.ViewModels
               
                 Step step = new Step();
                 step.GeneratedStepSendFilePath = "testpath";
-                step.FLTire = lf;
-                step.FRTire = rf;
+                step.LFTire = lf;
+                step.RFTire = rf;
                 step.RRTire = rr;
-                step.RLTire = lr;
+                step.LRTire = lr;
 
 
                 step.EnableAutomaticLapTimer = true;
@@ -665,6 +736,15 @@ namespace SimTestRequestBridge.ViewModels
             }
         }
 
+        private ICommand _generateAllTestRequestsSendFiles;
+        public ICommand GenerateAllTestRequestsSendFiles
+        {
+            get
+            {
+                return _generateAllTestRequestsSendFiles ?? (_generateAllTestRequestsSendFiles = new CommandHandler(() => GenerateAllTestRequestSendFiles(), () => ValidateTestRequestSteps));
+            }
+        }
+        
         private ICommand _newStepCommand;
         public ICommand NewStepCommand
         {

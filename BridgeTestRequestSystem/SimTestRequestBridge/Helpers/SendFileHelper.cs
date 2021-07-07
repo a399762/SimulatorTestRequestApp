@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimBridge.Database;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,15 +20,34 @@ namespace SimBridge.Helpers
             rr_tire_property_file
         };
 
-        public static XDocument SetTirePropertyFilePath(TirePositionProperties tirePosition,string value, XDocument document)
+        public enum VehiclUserLocation
+        {
+            vehicle_user_location_x,
+            vehicle_user_location_y,
+            vehicle_user_location_z,
+            vehicle_user_location_yaw,
+            vehicle_user_location_pitch,
+            vehicle_user_location_roll
+        };
+
+        public static XDocument SetTirePropertyFilePath(TirePositionProperties tirePosition, string value, XDocument document)
         {
             String tirePositionStringValue = Enum.GetName(typeof(TirePositionProperties), tirePosition);
 
-            var preferences = document.Descendants(xmlDefaultNamespace + "System").Descendants(xmlDefaultNamespace + "ParameterTree").FirstOrDefault(i => i.Attribute("name").Value == "preferences"); ;
+            var preferences = document.Descendants(xmlDefaultNamespace + "System").Descendants(xmlDefaultNamespace + "ParameterTree").FirstOrDefault(i => i.Attribute("name").Value == "preferences");
             var tire = preferences.Descendants().FirstOrDefault(i => i.Attribute("name").Value == tirePositionStringValue);
             tire.Attribute("value").Value = value;
 
             return document;
+        }
+
+        public static void SetStartingPosition(VehiclUserLocation vehiclUserLocation, int value, XDocument document)
+        {
+            String startingPositionStringValue = Enum.GetName(typeof(VehiclUserLocation), vehiclUserLocation);
+           
+            var preferences = document.Descendants(xmlDefaultNamespace + "System").Descendants(xmlDefaultNamespace + "ParameterTree").FirstOrDefault(i => i.Attribute("name").Value == "preferences");
+            var location = preferences.Descendants().FirstOrDefault(i => i.Attribute("name").Value == startingPositionStringValue);
+            location.Attribute("value").Value = value.ToString();
         }
     }
 }

@@ -8,9 +8,9 @@ namespace SimTestRequestBridge.Helpers
 {
     enum TireLocationsCodes
     {
-        FL,
-        FR,
-        RL,
+        LF,
+        LR,
+        RF,
         RR,
         All
     }

@@ -90,19 +90,19 @@ namespace SimTestRequestBridge
             }
         }
 
-        private void FLBrowseButton_Click(object sender, RoutedEventArgs e)
+        private void LFBrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            openDialogTireSelect(TireLocationsCodes.FL);
+            openDialogTireSelect(TireLocationsCodes.LF);
         }
 
-        private void FRBrowseButton_Click(object sender, RoutedEventArgs e)
+        private void RFBrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            openDialogTireSelect(TireLocationsCodes.FR);
+            openDialogTireSelect(TireLocationsCodes.RF);
         }
 
-        private void RLBrowseButton_Click(object sender, RoutedEventArgs e)
+        private void LRBrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            openDialogTireSelect(TireLocationsCodes.RL);
+            openDialogTireSelect(TireLocationsCodes.LR);
         }
 
         private void RRBrowseButton_Click(object sender, RoutedEventArgs e)
@@ -119,17 +119,17 @@ namespace SimTestRequestBridge
         {
             clearTireSelect(TireLocationsCodes.RR);
         }
-        private void RLClearButton_Click(object sender, RoutedEventArgs e)
+        private void RFClearButton_Click(object sender, RoutedEventArgs e)
         {
-            clearTireSelect(TireLocationsCodes.RL);
+            clearTireSelect(TireLocationsCodes.RF);
         }
-        private void FRClearButton_Click(object sender, RoutedEventArgs e)
+        private void LRClearButton_Click(object sender, RoutedEventArgs e)
         {
-            clearTireSelect(TireLocationsCodes.FR);
+            clearTireSelect(TireLocationsCodes.LR);
         }
-        private void FLClearButton_Click(object sender, RoutedEventArgs e)
+        private void LFClearButton_Click(object sender, RoutedEventArgs e)
         {
-            clearTireSelect(TireLocationsCodes.FL);
+            clearTireSelect(TireLocationsCodes.LF);
         }
         private void AllClearButton_Click(object sender, RoutedEventArgs e)
         {
@@ -141,6 +141,16 @@ namespace SimTestRequestBridge
             viewModel.ClearStepTire(code);
         }
 
-        
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult messageBoxResult = System.Windows.MessageBox.Show("Are you sure?", "Delete Confirmation", System.Windows.MessageBoxButton.YesNo);
+            if (messageBoxResult == MessageBoxResult.Yes)
+                viewModel.ClearCurrentTestRequestStagingFolder();
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            viewModel.ClearCurrentTestRequestMasterCar();
+        }
     }
 }
