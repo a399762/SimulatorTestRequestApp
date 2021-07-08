@@ -1,9 +1,12 @@
-﻿using SimTestRequestBridge.Helpers;
+﻿using ICSharpCode.SharpZipLib.Zip;
+using Ookii.Dialogs.Wpf;
+using SimTestRequestBridge.Helpers;
 using SimTestRequestBridge.ViewModels;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -152,5 +155,44 @@ namespace SimTestRequestBridge
         {
             viewModel.ClearCurrentTestRequestMasterCar();
         }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            tryStageCDB();
+        }
+
+        private void tryStageCDB()
+        {
+            VistaFolderBrowserDialog vistaFolderBrowserDialog = new VistaFolderBrowserDialog();
+            bool? result = vistaFolderBrowserDialog.ShowDialog();
+
+            if (result == true)
+            {
+                //if the folder does not end with .cdb, tell them to try again,... 
+                if (!vistaFolderBrowserDialog.SelectedPath.ToLower().EndsWith(".cdb"))
+                {
+                    MessageBox.Show("Folder must end with '.cdb' i.e. RaceCar.cdb");
+                    return;
+                }
+
+                bool stageResult = viewModel.StageVehicleCDB(vistaFolderBrowserDialog.SelectedPath);
+
+                if (!stageResult)
+                {
+                    //elaborate...
+                    MessageBox.Show("Error Staging CDB Folder/Files");
+                }
+            }
+        }
+
+        private void Button_Click_4(object sender, RoutedEventArgs e)
+        {
+            //clear cdb file from db
+
+
+
+        }
+
+     
     }
 }

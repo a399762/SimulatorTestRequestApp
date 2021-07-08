@@ -84,8 +84,9 @@ namespace SimBridge.Database
         private string sendFilePath;
         private string description;
         private string testNumber;
+        private string cdbFilePath;
 
-        ICollection<Step> steps;
+        private ICollection<Step> steps;
         private Car car;
         
         [Key]
@@ -132,7 +133,17 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
+        public string CDBFilePath
+        {
+            get { return cdbFilePath; }
 
+            set
+            {
+                cdbFilePath = value;
+                OnPropertyChanged();
+            }
+        }
+        
         public string Status { get; set; }
 
         public DateTime RecievedTime { get; set; }
@@ -436,6 +447,7 @@ namespace SimBridge.Database
         private int initStepStartingConditionID;
         private string comment;
         private string generatedSendFilePath;
+        private string sendFileUserVDFPath;
         private bool validated;
 
         private bool overrideStartingCondition;
@@ -454,6 +466,7 @@ namespace SimBridge.Database
 
         private int initSpeedUnitID;
         private int LocationLapTimeConfigurationDRDID;
+
 
         private SpeedUnit initSpeedUnit;
         private StepStartingCondition initStepStartingCondition;
@@ -634,6 +647,17 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
+        public string SendFileUserVDFPath
+        {
+            get { return sendFileUserVDFPath; }
+
+            set
+            {
+                sendFileUserVDFPath = value;
+                OnPropertyChanged();
+            }
+        }
+        
 
         public string GeneratedSendFilePath
         {
@@ -886,7 +910,6 @@ namespace SimBridge.Database
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
-
     public class LocationLapTimeConfigurationDRD : INotifyPropertyChanged, IEquatable<LocationLapTimeConfigurationDRD>
     {
         int locationLapTimeConfigurationDRDID;

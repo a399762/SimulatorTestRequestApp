@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ICSharpCode.SharpZipLib.Zip;
+using Microsoft.EntityFrameworkCore;
+using Salaros.Configuration;
 using SimBridge.Database;
 using SimBridge.Helpers;
 using SimTestRequestBridge.Helpers;
@@ -6,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -23,7 +26,7 @@ namespace SimTestRequestBridge.ViewModels
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         //place in settings
-        private string stagingPath = @"C:\Staging";
+        private string rootStagingPath = @"C:\Staging";
 
         public event PropertyChangedEventHandler PropertyChanged;
         private ObservableCollection<TestRequest> testRequests = new ObservableCollection<TestRequest>();
@@ -39,7 +42,7 @@ namespace SimTestRequestBridge.ViewModels
         //one to keep track of what is selected that is loaded minimally, the other to actively modify, it has all the things in it....
         private TestRequest currentSelectedTestRequest;
         private TestRequest currentWorkingTestRequest;
-      
+
         private Step currentTestRequestStep;
         private SimBridgeDataContext currentWorkingContext;
 
@@ -59,9 +62,9 @@ namespace SimTestRequestBridge.ViewModels
         public string GetCurrentStagingFolder()
         {
             if (CurrentWorkingTestRequest != null)
-                return FileHelper.GetStagingFolderForTestRequest(CurrentWorkingTestRequest.TestNumber,stagingPath);
+                return FileHelper.GetStagingFolderForTestRequest(CurrentWorkingTestRequest.TestNumber, rootStagingPath);
             else
-               return null;
+                return null;
         }
 
         internal bool StageTireFilesForCurrentStep(List<string> filenames, TireLocationsCodes locationsCode)
@@ -72,13 +75,13 @@ namespace SimTestRequestBridge.ViewModels
             if (CurrentTestRequestStep == null)
                 return false;
 
-            if (!FileHelper.CreateStagingFolderIfNotExist(CurrentWorkingTestRequest.TestNumber, stagingPath))
+            if (!FileHelper.CreateStagingFolderIfNotExist(CurrentWorkingTestRequest.TestNumber, rootStagingPath))
                 return false;
 
             switch (locationsCode)
             {
                 case TireLocationsCodes.LF:
-                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.LFTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);  
+                    StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.LFTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);
                     break;
                 case TireLocationsCodes.LR:
                     StageTireFiles(CurrentWorkingTestRequest.TestNumber, currentTestRequestStep.LRTire, currentTestRequestStep.TireModelType.TireModelTypeID, filenames);
@@ -100,7 +103,7 @@ namespace SimTestRequestBridge.ViewModels
                 default:
                     return false;
             }
-
+            SaveCurrentTestRequest();
             OnPropertyChanged(nameof(CurrentWorkingTestRequest));//notify that we just updated test request with send file info
             return true;
         }
@@ -109,14 +112,48 @@ namespace SimTestRequestBridge.ViewModels
         {
             //clear object in db, and remove file
 
-            string file = currentWorkingTestRequest.SendFilePath;
-           
+            string file = CurrentWorkingTestRequest.SendFilePath;
+
             if (File.Exists(file))
             {
                 File.Delete(file);
             }
-        
-            currentWorkingTestRequest.SendFilePath = null;
+
+            CurrentWorkingTestRequest.SendFilePath = null;
+            SaveCurrentTestRequest();
+            OnPropertyChanged(nameof(CurrentWorkingTestRequest));
+        }
+
+        internal bool StageVehicleCDB(string path)
+        {
+            bool result = false;
+
+            string rootCDBFolderName = new DirectoryInfo(path).Name;
+
+            string testNumber = CurrentWorkingTestRequest.TestNumber;
+            string cdbStagingPath = FileHelper.GetStagingFolderForTestRequest(testNumber, rootStagingPath) + @"\" + rootCDBFolderName;
+
+            try
+            {
+                DirectoryInfo source = new DirectoryInfo(path);
+                DirectoryInfo target = new DirectoryInfo(cdbStagingPath);
+
+                //copy all folders and files from filePath to the staging folder.
+                FileHelper.CopyAll(source, target);
+
+
+                CurrentWorkingTestRequest.CDBFilePath = target.FullName;
+                SaveCurrentTestRequest();
+
+                result = true;
+            }
+            catch (Exception err)
+            {
+                string t = "";
+                result = false;
+            }
+
+            return result;
         }
 
         //clear staging folder, used during development,.. prolly not for prod
@@ -175,13 +212,13 @@ namespace SimTestRequestBridge.ViewModels
             OnPropertyChanged(nameof(CurrentWorkingTestRequest));//notify that we just updated test request with send file info
         }
 
-        private void ClearStagedTireFiles( Tire tire)
+        private void ClearStagedTireFiles(Tire tire)
         {
             tire.TirePath = null;
             tire.CDT31TirePath = null;
         }
 
-        private bool StageTireFiles(string testRequestID, Tire tire,int tireTypeID,List<string> filenames)
+        private bool StageTireFiles(string testRequestID, Tire tire, int tireTypeID, List<string> filenames)
         {
 
             var tirFilePath = filenames.FirstOrDefault(i => i.Contains(".tir"));
@@ -190,8 +227,8 @@ namespace SimTestRequestBridge.ViewModels
             string tirFileName = Path.GetFileName(tirFilePath);
             string cdtFileName = Path.GetFileName(cdtFilePath);
 
-            string newtirFilePath = FileHelper.GetTiresStagingFolderForTestRequest(testRequestID, stagingPath) + @"\" + tirFileName;
-            string newcdtFilePath = FileHelper.GetTiresStagingFolderForTestRequest(testRequestID, stagingPath) + @"\" + cdtFileName;
+            string newtirFilePath = FileHelper.GetTiresStagingFolderForTestRequest(testRequestID, rootStagingPath) + @"\" + tirFileName;
+            string newcdtFilePath = FileHelper.GetTiresStagingFolderForTestRequest(testRequestID, rootStagingPath) + @"\" + cdtFileName;
 
             bool result = false;
             //do special things depending on type
@@ -227,7 +264,7 @@ namespace SimTestRequestBridge.ViewModels
                     try
                     {
                         File.Copy(tirFilePath, newtirFilePath, true);
-                   
+
                         //if we are ok file wise, this will work next.
                         tire.TirePath = newtirFilePath;
                         result = true;
@@ -247,7 +284,7 @@ namespace SimTestRequestBridge.ViewModels
             return result;
         }
 
-       
+
 
         private bool StageVehicleSendFile(string filename)
         {
@@ -271,8 +308,8 @@ namespace SimTestRequestBridge.ViewModels
         internal bool ValidateTestRequestForStep(Step currentTestRequestStep, TestRequest currentSelectedTestRequest)
         {
             //check to make sure each tire has a tire path, and that we have a valid base send file path loaded 
-            if (CurrentWorkingTestRequest.SendFilePath != null && currentTestRequestStep.LFTire.TirePath != null && 
-                currentTestRequestStep.LRTire.TirePath != null && currentTestRequestStep.RRTire.TirePath != null && 
+            if (CurrentWorkingTestRequest.SendFilePath != null && currentTestRequestStep.LFTire.TirePath != null &&
+                currentTestRequestStep.LRTire.TirePath != null && currentTestRequestStep.RRTire.TirePath != null &&
                 currentTestRequestStep.RFTire.TirePath != null)
             {
                 return true;
@@ -295,7 +332,7 @@ namespace SimTestRequestBridge.ViewModels
         {
             get
             {
-                if (currentTestRequestStep != null && currentSelectedTestRequest != null) 
+                if (currentTestRequestStep != null && currentSelectedTestRequest != null && currentSelectedTestRequest.Steps != null)
                 {
                     bool result = true;
 
@@ -311,19 +348,21 @@ namespace SimTestRequestBridge.ViewModels
                     return false;
             }
         }
-     
+
 
         private bool StageSendFile(TestRequest testRequest, string filename)
         {
             //copy file to staging folder for test session
             string fileNameOnly = Path.GetFileName(filename);
-            string newfileLocation = FileHelper.GetSendFilesStagingFolderForTestRequest(testRequest.TestNumber,stagingPath) + @"\" + fileNameOnly;
-            
+            string newfileLocation = FileHelper.GetOriginalSendFilesStagingFolderForTestRequest(testRequest.TestNumber, rootStagingPath)  + fileNameOnly;
+
             try
             {
-                File.Copy(filename, newfileLocation,true);
+                File.Copy(filename, newfileLocation, true);
                 CurrentWorkingTestRequest.SendFilePath = newfileLocation;
                 OnPropertyChanged(nameof(CurrentWorkingTestRequest));//notify that we just updated test request with send file info
+
+                SaveCurrentTestRequest();
             }
             catch (Exception e)
             {
@@ -373,8 +412,8 @@ namespace SimTestRequestBridge.ViewModels
                 else
                     StepStartingConditions = new ObservableCollection<StepStartingCondition>();
             }
-          
-         //   }
+
+            //   }
         }
 
 
@@ -409,7 +448,7 @@ namespace SimTestRequestBridge.ViewModels
         {
             return Task.Run(() => LoadTestRequests());
         }
-       
+
         private void LoadTestRequests()
         {
             using (SimBridgeDataContext context = new SimBridgeDataContext())
@@ -427,15 +466,15 @@ namespace SimTestRequestBridge.ViewModels
         {
             get
             {
-                return _saveCommand ?? (_saveCommand = new CommandHandler(() => saveCurrentTestRequest(), () => CanExecute));
+                return _saveCommand ?? (_saveCommand = new CommandHandler(() => SaveCurrentTestRequest(), () => CanExecute));
             }
         }
 
-        private void saveCurrentTestRequest()
+        public void SaveCurrentTestRequest()
         {
             try
             {
-                if(currentWorkingContext != null)
+                if (currentWorkingContext != null)
                     currentWorkingContext.SaveChanges();
             }
             catch (Exception e)
@@ -456,8 +495,11 @@ namespace SimTestRequestBridge.ViewModels
                 CurrentWorkingTestRequest = DBHelper.GetTestRequest(currentWorkingContext, testRequestID);
                 CurrentWorkingTestRequestSteps = new ObservableCollection<Step>(CurrentWorkingTestRequest.Steps);
 
+
+  
+
                 //create staging folder async
-                await CreateIfNotExistStaging(CurrentWorkingTestRequest.TestNumber, stagingPath);
+                await CreateIfNotExistStaging(CurrentWorkingTestRequest.TestNumber, rootStagingPath);
             }
             catch (Exception err)
             {
@@ -542,7 +584,7 @@ namespace SimTestRequestBridge.ViewModels
             SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.fr_tire_property_file, ConvertToTiresMDISFormat(step.RFTire.TirePath), doc);
             SendFileHelper.SetTirePropertyFilePath(SendFileHelper.TirePositionProperties.rr_tire_property_file, ConvertToTiresMDISFormat(step.RRTire.TirePath), doc);
 
-            StepStartingCondition tempStartingCondition; 
+            StepStartingCondition tempStartingCondition;
             if (step.OverrideStartingCondition)
             {
                 tempStartingCondition = new StepStartingCondition();
@@ -563,14 +605,34 @@ namespace SimTestRequestBridge.ViewModels
             SendFileHelper.SetStartingPosition(SendFileHelper.VehiclUserLocation.vehicle_user_location_yaw, tempStartingCondition.InitPositionRZ, doc);
 
             //where do we want to save...
-            var stepSendFilePath = FileHelper.GetSendFilesStagingFolderForTestRequest(testRequest.TestNumber, stagingPath) + @"\" + step.StepNumber + "_" + step.LFTire.Construction + "_" + step.RFTire.Construction + "_" + step.LRTire.Construction + "_" + step.RRTire.Construction + ".xml";
+            var stepSendFilePath = FileHelper.GetSendFilesStagingFolderForTestRequest(testRequest.TestNumber, rootStagingPath) + @"\" + step.StepNumber + "_" + step.LFTire.Construction + "_" + step.RFTire.Construction + "_" + step.LRTire.Construction + "_" + step.RRTire.Construction + ".xml";
 
             //check to see if we have a vicrtcdb.cfg made yet
             //create if not
-            FileHelper.CreateVICRTCDBCFGIfNotExist(testRequest.TestNumber,stagingPath);
-            
-            
+            FileHelper.CreateVICRTCDBCFGIfNotExist(testRequest.TestNumber, rootStagingPath);
+
+            //generate user vdf for inital speed/gear
+            //save user vdf 
+            //save db entry
+
+            //  <StringParameter name="smart_driver_file" active="true" userDefined="false" value="mdids://carrealtime_shared/driver_controls.tbl/user_event.vdf"/>
+
+            //open init file.
+            string folder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName) + @"\Resources\";
+            string userEventVDFFilePath = folder + @"user_event.vdf";
+
+
+            if (File.Exists(userEventVDFFilePath))
+            {
+                var configFileFromPath = new ConfigParser(userEventVDFFilePath);
+
+                string t = "";
+
+            }
+
+
             doc.Save(stepSendFilePath);
+           
         }
 
         private string ConvertToTiresMDISFormat(string tirePath)
@@ -625,6 +687,7 @@ namespace SimTestRequestBridge.ViewModels
 
                 CurrentWorkingTestRequest.Steps.Add(step);
                 currentWorkingTestRequestSteps.Add(step);
+                SaveCurrentTestRequest();
             }
         }
 
@@ -646,6 +709,8 @@ namespace SimTestRequestBridge.ViewModels
                 // Update the Order properties according to it's current index +1
                 for (int i = 0; i < ordered_list.Count; i++)
                     ordered_list[i].StepNumber = i + 1;
+
+                SaveCurrentTestRequest();
             }
         }
 
@@ -670,7 +735,7 @@ namespace SimTestRequestBridge.ViewModels
 
         private void DeleteSelectedTestRequest()
         {
-            throw new NotImplementedException();
+           
         }
 
         private void DeleteSelectedStep()
@@ -686,6 +751,7 @@ namespace SimTestRequestBridge.ViewModels
             for (int i = 0; i < ordered_list.Count; i++)
                 ordered_list[i].StepNumber = i + 1;
 
+            SaveCurrentTestRequest();
         }
 
         private ICommand _orderStepUpCommand;
@@ -918,16 +984,6 @@ namespace SimTestRequestBridge.ViewModels
         }
 
 
-        public ObservableCollection<TestRequest> CompletedTestRequests
-        {
-            get { return completedTestRequests; }
-            set
-            {
-                completedTestRequests = value;
-                OnPropertyChanged();
-            }
-        }
-
         public TestRequest CurrentSelectedTestRequest
         {
             get { return currentSelectedTestRequest; }
@@ -967,6 +1023,13 @@ namespace SimTestRequestBridge.ViewModels
             set
             {
                 currentTestRequestStep = value;
+
+                //todo,.. subscribe to child changes here,... and save when those changes occur for auto save
+                //var listener = ChangeListener.Create(myViewModel);
+                //listener.PropertyChanged +=
+                //    new PropertyChangedEventHandler(listener_PropertyChanged);
+
+
                 OnPropertyChanged();
             }
         }

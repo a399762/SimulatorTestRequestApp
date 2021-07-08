@@ -29,6 +29,12 @@ namespace SimTestRequestBridge.Helpers
             return testTiresStagingPath;
         }
 
+        public static string GetOriginalSendFilesStagingFolderForTestRequest(string testRequestNumber, string stagingPath)
+        {
+            String testTiresStagingPath = GetSendFilesStagingFolderForTestRequest(testRequestNumber, stagingPath) + @"\Original\";
+            return testTiresStagingPath;
+        }
+
         /// <summary>
         /// creates staging folder on hard disk, false if error, true if folder good to go
         /// </summary>
@@ -58,6 +64,13 @@ namespace SimTestRequestBridge.Helpers
                 String testSendFilesStagingPath = GetSendFilesStagingFolderForTestRequest(testRequestNumber, stagingPath);
                 if (!Directory.Exists(testSendFilesStagingPath))
                     Directory.CreateDirectory(testSendFilesStagingPath);
+
+
+                //send files folder
+                String testOriginalSendFilesStagingPath = GetOriginalSendFilesStagingFolderForTestRequest(testRequestNumber, stagingPath);
+                if (!Directory.Exists(testOriginalSendFilesStagingPath))
+                    Directory.CreateDirectory(testOriginalSendFilesStagingPath);
+
             }
             catch (Exception err)
             {
@@ -66,6 +79,7 @@ namespace SimTestRequestBridge.Helpers
 
             return true;
         }
+
 
         public static bool CreateVICRTCDBCFGIfNotExist(string testRequestNumber, string stagingPath)
         {
@@ -100,5 +114,34 @@ namespace SimTestRequestBridge.Helpers
 
             return true;
         }
+        public static void Copy(string sourceDirectory, string targetDirectory)
+        {
+            var diSource = new DirectoryInfo(sourceDirectory);
+            var diTarget = new DirectoryInfo(targetDirectory);
+
+            CopyAll(diSource, diTarget);
+        }
+
+        public static void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        {
+            Directory.CreateDirectory(target.FullName);
+
+            // Copy each file into the new directory.
+            foreach (FileInfo fi in source.GetFiles())
+            {
+                Console.WriteLine(@"Copying {0}\{1}", target.FullName, fi.Name);
+                fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
+            }
+
+            // Copy each subdirectory using recursion.
+            foreach (DirectoryInfo diSourceSubDir in source.GetDirectories())
+            {
+                DirectoryInfo nextTargetSubDir =
+                    target.CreateSubdirectory(diSourceSubDir.Name);
+                CopyAll(diSourceSubDir, nextTargetSubDir);
+            }
+        }
+
+     
     }
 }

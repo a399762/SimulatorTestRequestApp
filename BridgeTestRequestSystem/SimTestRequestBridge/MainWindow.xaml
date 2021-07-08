@@ -86,7 +86,7 @@
                         <TabControl Margin="5" Background="AliceBlue">
                             <TabItem Header="Information">
                                 <DockPanel Height="Auto" Name="stackPanel1" Width="Auto" LastChildFill="True" Margin="5">
-                                    <Label DockPanel.Dock="Top">Request Name:</Label>
+                                    <Label DockPanel.Dock="Top">Request Number:</Label>
                                     <TextBlock  DockPanel.Dock="Top" HorizontalAlignment="Stretch"  Text="{Binding CurrentWorkingTestRequest.TestNumber}" Background="White"  />
                                     <Label DockPanel.Dock="Top">Request Vehicle:</Label>
                                     <TextBlock  DockPanel.Dock="Top" HorizontalAlignment="Stretch"  Text="{Binding CurrentWorkingTestRequest.Car.Description}" Background="White"  />
@@ -98,6 +98,7 @@
                                 <StackPanel Margin="10">
                                     <Label >Request Vehicle:</Label>
                                     <TextBlock HorizontalAlignment="Stretch"  Text="{Binding CurrentWorkingTestRequest.Car.Description}" Background="White"  />
+                                    
                                     <Label >Vehicle Send File</Label>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -118,10 +119,27 @@
                                         <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
                                     </Grid>
 
-                                    <Label>Validation/ other information about loaded send file..???</Label>
+                                    <Label>Vehicle CDB</Label>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto"  />
+                                            <ColumnDefinition  />
+                                            <ColumnDefinition Width="auto"  />
+                                            <ColumnDefinition Width="auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition  />
+                                        </Grid.RowDefinitions>
+                                        <Button Grid.Column="0" Content="Browse" VerticalAlignment="Center" Click="Button_Click_2" />
+                                        <Button Grid.Column="1" Content="Clear" VerticalAlignment="Center" Click="Button_Click_4" />
+                                        <TextBlock Grid.Column="2"  Margin="5,1,1,1" Text="{Binding CurrentWorkingTestRequest.CDBFilePath, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource FileFromPathConverter}}" Background="White"  />
+                                        <Image Grid.Column="3" HorizontalAlignment="Center" Height="20"  Source="Resources/BadIcon.png"/>
+                                        <Image Grid.Column="4" HorizontalAlignment="Center" Height="20"  Source="Resources/GoodIcon.png"/>
+                                    </Grid>
                                 </StackPanel>
                             </TabItem>
-                            <TabItem Header="OTHER??" >
+                            <TabItem Header="Dev Use" >
                                 <StackPanel Margin="10" Grid.Column="0">
                                     <Button  Content="Open Staging Folder" Click="Button_Click" />
                                     <Button  Content="Clear Staging Folder" Click="Button_Click_1" />
