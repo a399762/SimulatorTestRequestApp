@@ -44,7 +44,7 @@
                 <Button Command="{Binding NewCommand}"  Content="New" />
                 <Button Command="{Binding DeleteTestRequestCommand}"  Content="Delete" />
                 <Button Command="{Binding RefreshCommand}" Content="Refresh" />
-                <Button Command="{Binding SaveCommand}" Content="Save" />
+                <!--<Button Command="{Binding SaveCommand}" Content="Save" />-->
                 <Button Command="{Binding StageCommand}" Content="Stage" />
                 <Button  Content="Import" />
             </ToolBar>
@@ -156,7 +156,7 @@
                                     <Button Command="{Binding OrderStepUpCommand}" Content="Up" />
                                     <Button Command="{Binding OrderStepDownCommand}"  Content="Down" />
                                     <Button Command="{Binding GenerateAllTestRequestsSendFiles}"  Content="Generate All Send Files"  />
-                                    <Button Command="{Binding ValidateAllSets}"  Content="Validate all Steps"  />
+                                    <!--<Button Command="{Binding ValidateAllSets}"  Content="Validate all Steps"  />-->
                                 </ToolBar>
                             </ToolBarTray>
                             <controls:CustomDataGrid Background="LightGray" x:Name="stepDataGrid"  AutoGenerateColumns="False" HeadersVisibility="Column" IsReadOnly="True"  SelectedItem="{Binding CurrentTestRequestStep}" ItemsSource="{Binding Source={StaticResource CurrentWorkingStepsCollectionView}}">
@@ -206,7 +206,7 @@
                                 <ToolBarTray DockPanel.Dock="Top"  >
                                     <ToolBar  IsEnabled="{Binding CurrentTestRequestStep, TargetNullValue=False}">
                                         <Button Command="{Binding GenerateSendFileCommand}"  Content="Generate Send File"  />
-                                        <Button Command="{Binding ValidateStepCommand}"  Content="Validate Step"  />
+                                        <!--<Button Command="{Binding ValidateStepCommand}"  Content="Validate Step"  />-->
                                     </ToolBar>
                                 </ToolBarTray>
                                 <TabControl Background="AliceBlue">
@@ -434,12 +434,6 @@
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </StackPanel>
-
-
-
-
-
-
                                             </GroupBox>
                                         </StackPanel>
                                     </TabItem>

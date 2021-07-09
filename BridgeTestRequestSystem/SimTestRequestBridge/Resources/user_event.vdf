@@ -15,12 +15,12 @@ $----------------------------------------------------------------GLOBAL_SETTINGS
 MODEL_TYPE = 'CAR_STANDARD'
 $------------------------------------------------------------------------STARTUP
 [STARTUP]
-INITIAL_SPEED = 33
+INITIAL_SPEED = {0}
 INITIAL_STEERING = 0
 INITIAL_THROTTLE = 0
 INITIAL_BRAKING = 0
 INITIAL_BRAKING2 = 0
-INITIAL_GEAR = 4
+INITIAL_GEAR = {1}
 INITIAL_CLUTCH = 0
 INITIAL_SETUP = 'OFF'
 $--------------------------------------------------------------STEERING_STANDARD

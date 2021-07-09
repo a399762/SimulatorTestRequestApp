@@ -33,15 +33,15 @@ namespace SimTestRequestBridge
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
             dlg.DefaultExt = ".xml";
             dlg.Filter = "XML Files (*.XML)|*.xml";
-         
+
             bool? result = dlg.ShowDialog();
 
             if (result == true)
             {
-               string filename = dlg.FileName;
+                string filename = dlg.FileName;
 
                 //now take file and pass to VM, to stage it. 
-               bool stageResult = await viewModel.StageVehicleSendFileAsync(filename);
+                bool stageResult = await viewModel.StageVehicleSendFileAsync(filename);
 
                 if (!stageResult)
                 {
@@ -56,7 +56,7 @@ namespace SimTestRequestBridge
             //open staging folder? //also make this bound in vm?
             try
             {
-                string stagingPath = viewModel.GetCurrentStagingFolder();
+                string stagingPath = viewModel.GetCurrentStagingFolder().FullName;
 
                 if (stagingPath != null)
                 {
@@ -74,7 +74,8 @@ namespace SimTestRequestBridge
             // Create OpenFileDialog 
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
             dlg.Multiselect = true;
-            dlg.Filter = "TIR (*.tir,*.cdt31)|*.tir;*.cdt31|All files (*.*)|*.*";
+            //grab filter from mainview, depending on current type...
+            dlg.Filter = viewModel.GetCurrentTireTypeOpenDialogFilter();// "TIR (*.tir,*.cdt31)|*.tir;*.cdt31|All files (*.*)|*.*";
 
             bool? result = dlg.ShowDialog();
 
@@ -188,11 +189,7 @@ namespace SimTestRequestBridge
         private void Button_Click_4(object sender, RoutedEventArgs e)
         {
             //clear cdb file from db
-
-
-
+            viewModel.ClearCurrentTestRequestCarCDB();
         }
-
-     
     }
 }

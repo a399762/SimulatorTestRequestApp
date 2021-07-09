@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SimTestRequestBridge.Helpers
 {
-    enum TireLocationsCodes
+    public enum TireLocationsCodes
     {
         LF,
         LR,

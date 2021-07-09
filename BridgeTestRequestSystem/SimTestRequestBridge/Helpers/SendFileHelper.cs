@@ -49,5 +49,13 @@ namespace SimBridge.Helpers
             var location = preferences.Descendants().FirstOrDefault(i => i.Attribute("name").Value == startingPositionStringValue);
             location.Attribute("value").Value = value.ToString();
         }
+
+        public static void SetVDFPath(string vdfPath, XDocument document)
+        {
+            var preferences = document.Descendants(xmlDefaultNamespace + "System").Descendants(xmlDefaultNamespace + "ParameterTree").FirstOrDefault(i => i.Attribute("name").Value == "preferences");
+            var smart_driver_file = preferences.Descendants().FirstOrDefault(i => i.Attribute("name").Value == "smart_driver_file");
+
+            smart_driver_file.Attribute("value").Value = vdfPath;
+        }
     }
 }

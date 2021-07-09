@@ -34,9 +34,9 @@ namespace SimBridge.Database
             //add init Tire model Types
             try
             {
-                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 1, Description = "CD Tire", RequiresCDTFile = true });
-                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 2, Description = "MF Tire", RequiresCDTFile = false });
-                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 3, Description = "MF Swift", RequiresCDTFile = false });
+                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 1, Description = "CD Tire", RequiresCDTFile = true, FileExtensionList=".tir,.cdt31" });
+                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 2, Description = "MF Tire", RequiresCDTFile = false, FileExtensionList = ".tir" });
+                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 3, Description = "MF Swift", RequiresCDTFile = false, FileExtensionList = ".tir" });
 
                 //add init locations
                 modelBuilder.Entity<Location>().HasData(new Location { LocationID = 1, Description = "3 Lane Highway" });
@@ -465,9 +465,12 @@ namespace SimBridge.Database
         private int initSpeed;
 
         private int initSpeedUnitID;
-        private int LocationLapTimeConfigurationDRDID;
+      //  private int locationLapTimeConfigurationDRDID;
 
-
+        private Tire lfTire;
+        private Tire lRTire;
+        private Tire rfTire;
+        private Tire rrTire;
         private SpeedUnit initSpeedUnit;
         private StepStartingCondition initStepStartingCondition;
         private TireModelType tireModelType;
@@ -769,18 +772,50 @@ namespace SimBridge.Database
             }
         }
 
-        public Tire LFTire { get; set; }
+        public Tire LFTire
+        {
+            get { return lfTire; }
 
-        public Tire LRTire { get; set; }
+            set
+            {
+                lfTire = value;
+                OnPropertyChanged();
+            }
+        }
 
-        public Tire RFTire { get; set; }
+        public Tire LRTire {
+            get { return lRTire; }
 
-        public Tire RRTire { get; set; }
+            set
+            {
+                lRTire = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Tire RFTire {
+            get { return rfTire; }
+
+            set
+            {
+                rfTire = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Tire RRTire {
+            get { return rrTire; }
+
+            set
+            {
+                rrTire = value;
+                OnPropertyChanged();
+            }
+        }
 
         [Required]
         public int TestRequestID { get; set; }
 
-        [StringLength(300)]
         public string GeneratedStepSendFilePath { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -856,6 +891,7 @@ namespace SimBridge.Database
         int tireModelTypeID;
         bool requiresCDTFile;
         string description;
+        string fileExtensionList;
 
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -891,7 +927,17 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
+        public string FileExtensionList
+        {
+            get { return fileExtensionList; }
 
+            set
+            {
+                fileExtensionList = value;
+                OnPropertyChanged();
+            }
+        }
+        
         //override equal check for combobox binding assistance
         public bool Equals(TireModelType other)
         {
