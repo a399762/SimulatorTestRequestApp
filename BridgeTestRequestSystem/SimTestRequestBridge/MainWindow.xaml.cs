@@ -191,5 +191,41 @@ namespace SimTestRequestBridge
             //clear cdb file from db
             viewModel.ClearCurrentTestRequestCarCDB();
         }
+
+        private void Button_Click_5(object sender, RoutedEventArgs e)
+        {
+            //open gttdtestrequest xml and import
+
+            // Create OpenFileDialog 
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.Multiselect = false;
+            //grab filter from mainview, depending on current type...
+            dlg.Filter = "XML (*.xml)|*.xml;|All files (*.*)|*.*";
+
+            bool? result = dlg.ShowDialog();
+
+            if (result == true)
+            {
+                try
+                {
+                    //now take file and pass to VM, to import it
+                    bool importResult = viewModel.ImportGttdTestRequest(dlg.FileName);
+
+                    if (!importResult)
+                    {
+                        //elaborate...
+                        MessageBox.Show("Error Importing gttd XML File");
+                    }
+                }
+                catch (Exception)
+                {
+
+                  
+                }
+            }
+
+
+
+        }
     }
 }

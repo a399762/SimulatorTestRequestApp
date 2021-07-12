@@ -46,7 +46,7 @@
                 <Button Command="{Binding RefreshCommand}" Content="Refresh" />
                 <!--<Button Command="{Binding SaveCommand}" Content="Save" />-->
                 <Button Command="{Binding StageCommand}" Content="Stage" />
-                <Button  Content="Import" />
+                <Button  Content="Import" Click="Button_Click_5"/>
             </ToolBar>
         </ToolBarTray>
         <Grid Name="MCGrid" >

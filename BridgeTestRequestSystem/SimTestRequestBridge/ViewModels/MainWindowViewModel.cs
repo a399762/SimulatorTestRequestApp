@@ -156,6 +156,17 @@ namespace SimTestRequestBridge.ViewModels
             return true;
         }
 
+        public bool ImportGttdTestRequest(string filename)
+        {
+            bool result = false;
+            //read text into string
+            var content = File.ReadAllText(filename);
+
+            var t = GttdTestRequestHelper.ConvertFromXMLToEntity(content);
+
+            return result;
+        }
+
         public bool StageVehicleCDB(string path)
         {
             if (CurrentWorkingTestRequest == null)
@@ -383,10 +394,6 @@ namespace SimTestRequestBridge.ViewModels
         //load combobox choices and stuff...
         private void LoadAll()
         {
-
-            //  using (SimBridgeDataContext context = new SimBridgeDataContext())
-            // {
-
             if (currentWorkingContext != null)
             {
                 var tiretypes = currentWorkingContext.TireTypes.ToList();
@@ -419,8 +426,6 @@ namespace SimTestRequestBridge.ViewModels
                 else
                     StepStartingConditions = new ObservableCollection<StepStartingCondition>();
             }
-
-            //   }
         }
 
         private void LoadLocations()
