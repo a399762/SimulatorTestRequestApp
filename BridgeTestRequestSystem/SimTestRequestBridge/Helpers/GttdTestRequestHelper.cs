@@ -43,7 +43,6 @@ namespace SimBridge.Helpers
            //tempRequest.Car = 
 
           
-            string t = "";
             //var tire = preferences.Descendants().FirstOrDefault(i => i.Attribute("name").Value == tirePositionStringValue);
             //tire.Attribute("value").Value = value;
 

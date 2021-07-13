@@ -83,7 +83,7 @@ namespace SimTestRequestBridge.Helpers
                     File.WriteAllLines(cfgPath, cdbentries.ToArray());
                 }
             }
-            catch(Exception err)
+            catch(Exception)
             {
                 return false;
             }

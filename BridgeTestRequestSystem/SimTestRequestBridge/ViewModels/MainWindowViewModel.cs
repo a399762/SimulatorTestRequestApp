@@ -148,7 +148,7 @@ namespace SimTestRequestBridge.ViewModels
                 CurrentWorkingTestRequest.SendFilePath = newfileLocation;
                 OnPropertyChanged(nameof(CurrentWorkingTestRequest));//notify that we just updated test request with send file info
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -189,9 +189,8 @@ namespace SimTestRequestBridge.ViewModels
                 CurrentWorkingTestRequest.CDBFilePath = target.FullName;
                 result = true;
             }
-            catch (Exception err)
+            catch (Exception)
             {
-                string t = "";
                 result = false;
             }
 
@@ -288,7 +287,7 @@ namespace SimTestRequestBridge.ViewModels
                         tire.CDT31TirePath = newcdtFilePath;
                         result = true;
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
 
                         throw;
@@ -308,7 +307,7 @@ namespace SimTestRequestBridge.ViewModels
                         tire.TirePath = newtirFilePath;
                         result = true;
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
 
                         throw;
@@ -483,9 +482,9 @@ namespace SimTestRequestBridge.ViewModels
                 if (currentWorkingContext != null)
                     currentWorkingContext.SaveChanges();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                string g = "";
+           
             }
         }
 
@@ -505,7 +504,7 @@ namespace SimTestRequestBridge.ViewModels
                 //this holds the steps, allowing to UI interaction
                 CurrentWorkingTestRequestSteps = new ObservableCollection<Step>(CurrentWorkingTestRequest.Steps);
             }
-            catch (Exception err)
+            catch (Exception)
             {
                 throw;
             }
@@ -533,7 +532,7 @@ namespace SimTestRequestBridge.ViewModels
                 //    }
                 //}
             }
-            catch (Exception err)
+            catch (Exception)
             {
                 return false;
             }
@@ -892,9 +891,9 @@ namespace SimTestRequestBridge.ViewModels
                     context.SaveChanges();
                 }
             }
-            catch (Exception ee)
+            catch (Exception)
             {
-                string t = "";
+            
             }
         }
 
@@ -997,7 +996,7 @@ namespace SimTestRequestBridge.ViewModels
                     else
                         CurrentWorkingTestRequest = null;
                 }
-                catch (Exception err)
+                catch (Exception)
                 {
 
                 }
