@@ -47,7 +47,7 @@ namespace SimBridge.Database
                 //cars
                 modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Race car" });
                 modelBuilder.Entity<Car>().HasData(new Car { CarID = 2, Description = "Jeep Grand Cherokee wk18" });
-                modelBuilder.Entity<Car>().HasData(new Car { CarID = 3, Description = "Golf 8" });
+                modelBuilder.Entity<Car>().HasData(new Car { CarID = 3, Description = "VW GOLF 8" });
                 modelBuilder.Entity<Car>().HasData(new Car { CarID = 4, Description = "Sedan Car" });
                 modelBuilder.Entity<Car>().HasData(new Car { CarID = 5, Description = "Compact Car" });
 
@@ -86,6 +86,8 @@ namespace SimBridge.Database
         private string testNumber;
         private string cdbFilePath;
         private string preferDriver;
+        private string machineName;
+        
 
         private ICollection<Step> steps;
         private Car car;
@@ -114,7 +116,17 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
+        public string MachineName
+        {
+            get { return machineName; }
 
+            set
+            {
+                machineName = value;
+                OnPropertyChanged();
+            }
+        }
+        
         public string PreferDriver
         {
             get { return preferDriver; }
