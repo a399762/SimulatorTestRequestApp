@@ -85,6 +85,7 @@ namespace SimBridge.Database
         private string description;
         private string testNumber;
         private string cdbFilePath;
+        private string preferDriver;
 
         private ICollection<Step> steps;
         private Car car;
@@ -110,6 +111,17 @@ namespace SimBridge.Database
             set
             {
                 description = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string PreferDriver
+        {
+            get { return preferDriver; }
+
+            set
+            {
+                preferDriver = value;
                 OnPropertyChanged();
             }
         }
