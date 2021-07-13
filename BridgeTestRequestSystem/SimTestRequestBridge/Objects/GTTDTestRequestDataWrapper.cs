@@ -8,10 +8,10 @@ namespace SimTestRequestBridge.Objects
 {
     public class GTTDTestRequestDataWrapper
     {
-        string PREFER_DRIVER;
-        string MACHINE_NAME;
-        string SPEED;
-        string VEHICLE_MODEL;
+        //string PREFER_DRIVER;
+        //string MACHINE_NAME;
+        //string SPEED;
+        //string VEHICLE_MODEL;
 
 
 

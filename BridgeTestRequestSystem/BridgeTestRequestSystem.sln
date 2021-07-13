@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.31019.35
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IBMWebTestConsole", "IBMWebTestConsole\IBMWebTestConsole.csproj", "{5599C753-037A-41EE-9A67-2B5933A11A44}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimBridge", "SimBridge\SimBridge.csproj", "{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimTestRequestBridge", "SimTestRequestBridge\SimTestRequestBridge.csproj", "{4B75FD0E-9FB7-428A-968A-BCAC05C99011}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{3F842C7A-6813-4437-B0B5-68442ECF641F}"
@@ -26,10 +24,6 @@ Global
 		{5599C753-037A-41EE-9A67-2B5933A11A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5599C753-037A-41EE-9A67-2B5933A11A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5599C753-037A-41EE-9A67-2B5933A11A44}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7834A9F2-A1BF-4368-81F4-CA1E13872D1D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4B75FD0E-9FB7-428A-968A-BCAC05C99011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4B75FD0E-9FB7-428A-968A-BCAC05C99011}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B75FD0E-9FB7-428A-968A-BCAC05C99011}.Release|Any CPU.ActiveCfg = Release|Any CPU
