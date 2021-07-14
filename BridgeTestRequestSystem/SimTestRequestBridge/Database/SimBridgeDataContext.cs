@@ -34,15 +34,16 @@ namespace SimBridge.Database
             //add init Tire model Types
             try
             {
-                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 1, Description = "CD Tire", RequiresCDTFile = true, FileExtensionList=".tir,.cdt31" });
-                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 2, Description = "MF Tire", RequiresCDTFile = false, FileExtensionList = ".tir" });
-                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 3, Description = "MF Swift", RequiresCDTFile = false, FileExtensionList = ".tir" });
+                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 1, Description = "CDTIRE", RequiresCDTFile = true, FileExtensionList=".tir,.cdt31" });
+                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 2, Description = "MF6.0", RequiresCDTFile = false, FileExtensionList = ".tir" });
+                modelBuilder.Entity<TireModelType>().HasData(new TireModelType { TireModelTypeID = 3, Description = "MF5.2", RequiresCDTFile = false, FileExtensionList = ".tir" });
 
                 //add init locations
-                modelBuilder.Entity<Location>().HasData(new Location { LocationID = 1, Description = "3 Lane Highway" });
-                modelBuilder.Entity<Location>().HasData(new Location { LocationID = 2, Description = "Virginia International Raceway" });
+                modelBuilder.Entity<Location>().HasData(new Location { LocationID = 1, Description = "3 LANE HIGHWAY" });
+                modelBuilder.Entity<Location>().HasData(new Location { LocationID = 2, Description = "VIR (FULL)" });
                 modelBuilder.Entity<Location>().HasData(new Location { LocationID = 3, Description = "Nurburgring" });
                 modelBuilder.Entity<Location>().HasData(new Location { LocationID = 4, Description = "VDA" });
+                modelBuilder.Entity<Location>().HasData(new Location { LocationID = 5, Description = "IDIADA GENERAL ROAD" });
 
                 //cars
                 modelBuilder.Entity<Car>().HasData(new Car { CarID = 1, Description = "Race car" });
@@ -52,10 +53,12 @@ namespace SimBridge.Database
                 modelBuilder.Entity<Car>().HasData(new Car { CarID = 5, Description = "Compact Car" });
 
                 //Maneuvers...
-                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 1, Description = "Slalom" });
-                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 2, Description = "On-Center" });
-                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 3, Description = "Double Lane Change" });
+                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 1, Description = "100 FT SLALOM" });
+                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 2, Description = "ON CENTER" });
+                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 3, Description = "LANE CHANGE (GATED)" });
                 modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 4, Description = "Performance" });
+                modelBuilder.Entity<Maneuver>().HasData(new Maneuver { ManeuverID = 5, Description = "E80 COURSE" });
+                
 
                 // how fastsss
                 modelBuilder.Entity<SpeedUnit>().HasData(new SpeedUnit { SpeedUnitID = 1, Description = "m/s", ConversionFactor = 1 });
@@ -87,7 +90,7 @@ namespace SimBridge.Database
         private string cdbFilePath;
         private string preferDriver;
         private string machineName;
-        
+        private string testCode;
 
         private ICollection<Step> steps;
         private Car car;
@@ -105,7 +108,17 @@ namespace SimBridge.Database
                 OnPropertyChanged();
             }
         }
-        //TestNmber
+        public string TestCode
+        {
+            get { return testCode; }
+
+            set
+            {
+                testCode = value;
+                OnPropertyChanged();
+            }
+        }
+
         public string Description
         {
             get { return description; }

@@ -8,6 +8,8 @@ namespace SimTestRequestBridge.Objects
 {
     public class GTTDTestRequestDataWrapper
     {
+        public string Test_Number { get; set; }
+        public string Test_Code { get; set; }
         public string PREFER_DRIVER { get; set; }
         public string MACHINE_NAME { get; set; }
         public string SPEED { get; set; }
@@ -18,7 +20,7 @@ namespace SimTestRequestBridge.Objects
 
     public class GTTDTestRequestStepDataWrapper
     {
-        public string test_step_number { get; set; }
+        public string Test_Step_Number { get; set; }
         public string MANEUVER { get; set; }
      
         public string LF_CONST { get; set; }

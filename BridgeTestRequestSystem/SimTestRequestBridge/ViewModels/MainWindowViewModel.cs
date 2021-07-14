@@ -1,7 +1,5 @@
 ﻿using FileDialogFilterBuilder;
-using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.EntityFrameworkCore;
-using Salaros.Configuration;
 using SimBridge.Database;
 using SimBridge.Helpers;
 using SimTestRequestBridge.Helpers;
@@ -10,15 +8,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Xml.Linq;
 
@@ -63,12 +58,10 @@ namespace SimTestRequestBridge.ViewModels
             filterBuilder.Infos.Add(new FilterInfo(CurrentTestRequestStep.TireModelType.Description, fileExtensions));
             return filterBuilder.ToFilterString();
         }
-
         public Task<bool> StageVehicleSendFileAsync(string filename)
         {
             return Task<bool>.Run(() => StageVehicleSendFile(filename));
         }
-
         public DirectoryInfo GetCurrentStagingFolder()
         {
             if (CurrentWorkingTestRequest != null)
@@ -76,7 +69,6 @@ namespace SimTestRequestBridge.ViewModels
             else
                 return null;
         }
-
         public bool StageTireFilesForCurrentStep(List<string> filenames, TireLocationsCodes locationsCode)
         {
             if (CurrentWorkingTestRequest == null)
@@ -113,7 +105,6 @@ namespace SimTestRequestBridge.ViewModels
 
             return true;
         }
-
         public void ClearCurrentTestRequestMasterCar()
         {
             //clear object in db, and remove file
@@ -125,7 +116,6 @@ namespace SimTestRequestBridge.ViewModels
             
             CurrentWorkingTestRequest.SendFilePath = null;
         }
-
         public void ClearCurrentTestRequestCarCDB()
         {
             string file = CurrentWorkingTestRequest.CDBFilePath;
@@ -135,7 +125,6 @@ namespace SimTestRequestBridge.ViewModels
 
             CurrentWorkingTestRequest.CDBFilePath = null;
         }
-
         private bool StageSendFile(TestRequest testRequest, string filename)
         {
             //copy file to staging folder for test session
@@ -155,18 +144,88 @@ namespace SimTestRequestBridge.ViewModels
 
             return true;
         }
-
         public bool ImportGttdTestRequest(string filename)
         {
             bool result = false;
-            //read text into string
-            var content = File.ReadAllText(filename);
+            //using wrapped data object, import into db
+            try
+            {
+                var content = File.ReadAllText(filename);
+                var wrappedRequest = GttdTestRequestHelper.ConvertFromXMLToEntity(content);
 
-            var t = GttdTestRequestHelper.ConvertFromXMLToEntity(content);
+                using (SimBridgeDataContext context = new SimBridgeDataContext())
+                {
+                    //try grab car from import
+                    var selectedCar = context.Cars.FirstOrDefault(i => i.Description.CompareTo(wrappedRequest.VEHICLE_MODEL) == 0);
 
+                    //do we have it?
+                    if (selectedCar == null)
+                        throw new Exception("Car Not Found");
+
+                    TestRequest testRequest = new TestRequest();
+                    testRequest.Car = selectedCar;
+                    testRequest.TestCode = wrappedRequest.Test_Code;
+                    testRequest.RecievedTime = DateTime.Now;
+                    testRequest.TestNumber = wrappedRequest.Test_Number;
+                    testRequest.TestCode = wrappedRequest.Test_Code;
+                    testRequest.Steps = new List<Step>();
+                    testRequest.MachineName = wrappedRequest.MACHINE_NAME;
+                    testRequest.PreferDriver = wrappedRequest.PREFER_DRIVER;
+
+                    foreach (var item in wrappedRequest.Steps)
+                    {
+                        Step tempStep = new Step();
+
+                        tempStep.LFTire = new Tire();
+                        tempStep.LFTire.Construction = item.LF_CONST;
+                        tempStep.LFTire.Pressure = double.Parse(item.LF_INFLATION);
+                        tempStep.LRTire = new Tire();
+                        tempStep.LRTire.Construction = item.LR_CONST;
+                        tempStep.LRTire.Pressure = double.Parse(item.LR_INFLATION);
+                        tempStep.RFTire = new Tire();
+                        tempStep.RFTire.Construction = item.RF_CONST;
+                        tempStep.RFTire.Pressure = double.Parse(item.RF_INFLATION);
+                        tempStep.RRTire = new Tire();
+                        tempStep.RRTire.Construction = item.RR_CONST;
+                        tempStep.RRTire.Pressure = double.Parse(item.RR_INFLATION);
+
+                        var setTrackLocation = context.Locations.FirstOrDefault(i => i.Description.CompareTo(item.TRACK) == 0);
+                        var setManuever = context.Maneuvers.FirstOrDefault(i => i.Description.CompareTo(item.MANEUVER) == 0);
+                        var setTireModel = context.TireTypes.FirstOrDefault(i => i.Description.CompareTo(item.TIRE_MODEL) == 0);
+
+                        //do we have it?
+                        if (setTrackLocation == null)
+                            throw new Exception("Track Location Not Found: " + item.TRACK);
+
+                        if (setManuever == null)
+                            throw new Exception("Manuever Not Found: " + item.MANEUVER);
+
+                        if (setTireModel == null)
+                            throw new Exception("Tire Model Not Found: " + item.TIRE_MODEL);
+
+                        tempStep.StepLocation = setTrackLocation;
+                        tempStep.StepManeuver = setManuever;
+                        tempStep.TireModelType = setTireModel;
+                        tempStep.InitSpeedUnit = context.SpeedUnits.FirstOrDefault();
+                        tempStep.InitStepStartingCondition = context.StepStartingConditions.FirstOrDefault();
+                        tempStep.StepNumber = int.Parse(item.Test_Step_Number);
+                        testRequest.Steps.Add(tempStep);
+                    }
+
+                    context.TestRequests.Add(testRequest);
+
+                    context.SaveChanges();
+                    result = true;
+                    LoadTestRequestsAsync();
+                }
+            }
+            catch (Exception err)
+            {
+                throw new Exception(err.Message);
+            }
+          
             return result;
         }
-
         public bool StageVehicleCDB(string path)
         {
             if (CurrentWorkingTestRequest == null)
@@ -221,7 +280,6 @@ namespace SimTestRequestBridge.ViewModels
         {
             return !Validation.GetHasError(obj) && LogicalTreeHelper.GetChildren(obj).OfType<DependencyObject>().All(IsValid);
         }
-
         internal void ClearStepTire(TireLocationsCodes code)
         {
             switch (code)
@@ -249,13 +307,11 @@ namespace SimTestRequestBridge.ViewModels
                     break;
             }
         }
-
         private void ClearStagedTireFiles(Tire tire)
         {
             tire.TirePath = null;
             tire.CDT31TirePath = null;
         }
-
         private bool StageTireFiles(string testRequestID, Step step, Tire tire, int tireTypeID, List<string> filenames, TireLocationsCodes tireLocationsCode)
         {
 
@@ -321,9 +377,6 @@ namespace SimTestRequestBridge.ViewModels
 
             return result;
         }
-
-
-
         private bool StageVehicleSendFile(string filename)
         {
             bool result = false;
@@ -355,7 +408,6 @@ namespace SimTestRequestBridge.ViewModels
 
             return false;
         }
-
         public bool ValidateTestRequestStep
         {
             get
@@ -386,10 +438,6 @@ namespace SimTestRequestBridge.ViewModels
                     return false;
             }
         }
-
-
-
-
         //load combobox choices and stuff...
         private void LoadAll()
         {
@@ -426,34 +474,10 @@ namespace SimTestRequestBridge.ViewModels
                     StepStartingConditions = new ObservableCollection<StepStartingCondition>();
             }
         }
-
-        private void LoadLocations()
-        {
-            using (SimBridgeDataContext context = new SimBridgeDataContext())
-            {
-                var locations = context.Locations.ToList();
-
-                if (locations != null)
-                    Locations = new ObservableCollection<Location>(locations);
-            }
-        }
-
-        private void LoadManeuvers()
-        {
-            using (SimBridgeDataContext context = new SimBridgeDataContext())
-            {
-                var maneuvers = context.Maneuvers.ToList();
-
-                if (maneuvers != null)
-                    Maneuvers = new ObservableCollection<Maneuver>(maneuvers);
-            }
-        }
-
         public Task LoadTestRequestsAsync()
         {
             return Task.Run(() => LoadTestRequests());
         }
-
         private void LoadTestRequests()
         {
             using (SimBridgeDataContext context = new SimBridgeDataContext())
@@ -464,7 +488,7 @@ namespace SimTestRequestBridge.ViewModels
                     TestRequests = new ObservableCollection<TestRequest>(allTestRequests);
             }
         }
-
+      
         //buttons
         private ICommand _saveCommand;
         public ICommand SaveCommand
@@ -474,7 +498,6 @@ namespace SimTestRequestBridge.ViewModels
                 return _saveCommand ?? (_saveCommand = new CommandHandler(() => SaveCurrentTestRequest(), () => CanExecute));
             }
         }
-
         public void SaveCurrentTestRequest()
         {
             try
@@ -487,7 +510,6 @@ namespace SimTestRequestBridge.ViewModels
            
             }
         }
-
         private void LoadTestRequest(int testRequestID)
         {
             try
@@ -509,7 +531,6 @@ namespace SimTestRequestBridge.ViewModels
                 throw;
             }
         }
-
         //put this in a class function.. ftp related??/
         private bool StageCurrentSession()
         {
@@ -539,29 +560,23 @@ namespace SimTestRequestBridge.ViewModels
 
             return true;
         }
-
         private string GetCurrentRemoteStagingFolderForTestRequest()
         {
             return GetRemoteStagingFolderForTestRequest(currentWorkingTestRequest.TestNumber);
         }
-       
         private string GetRemoteStagingFolderForTestRequest(string testRequestID)
         {
             string path = "/vigrade/vicrt/";
             return path + testRequestID;
         }
-
         private void GenerateSendFileForCurrentStep()
         {
             GenerateSendFileForStep(CurrentTestRequestStep.StepID);
         }
-
-
         private void GenerateAllTestRequestSendFiles()
         {
             GenerateSendFilesForTestRequest(CurrentWorkingTestRequest);
         }
-
         private void GenerateSendFilesForTestRequest(TestRequest currentWorkingTestRequest)
         {
             //loop through each step and send to generate send file for step.
@@ -570,10 +585,8 @@ namespace SimTestRequestBridge.ViewModels
                 GenerateSendFileForStep(item.StepID);
             }
         }
-
         private void GenerateSendFileForStep(int stepID)
         {
-
             Step step = currentWorkingContext.Steps.FirstOrDefault(i => i.StepID == stepID);
             var trID = step.TestRequestID;
 
@@ -643,7 +656,6 @@ namespace SimTestRequestBridge.ViewModels
 
             doc.Save(stepSendFilePath);
         }
-
         private string ConvertToVDFMDISFormat(string tirePath)
         {
             //grab file name 
@@ -653,7 +665,6 @@ namespace SimTestRequestBridge.ViewModels
             string value = "mdids://SendFiles/" + tireFileName;
             return value;
         }
-
         private string ConvertToTiresMDISFormat(string tirePath)
         {
             //grab file name 
@@ -663,7 +674,6 @@ namespace SimTestRequestBridge.ViewModels
             string value = "mdids://Tires/" + tireFileName;
             return value;
         }
-
         private void AddNewStepToCurrentTestRequest()
         {
             if (currentWorkingTestRequest != null )
@@ -709,8 +719,7 @@ namespace SimTestRequestBridge.ViewModels
                 SaveCurrentTestRequest();
             }
         }
-
-        void MoveAndUpdateOrder(ICollection<Step> list, Step item, int positionToInsert)
+        private void MoveAndUpdateOrder(ICollection<Step> list, Step item, int positionToInsert)
         {
             if (positionToInsert > 0)
             {
@@ -729,7 +738,6 @@ namespace SimTestRequestBridge.ViewModels
                     ordered_list[i].StepNumber = i + 1;
             }
         }
-
       
         private ICommand _deleteTestRequestStepCommand;
         public ICommand DeleteTestRequestStepCommand
@@ -739,21 +747,22 @@ namespace SimTestRequestBridge.ViewModels
                 return _deleteTestRequestStepCommand ?? (_deleteTestRequestStepCommand = new CommandHandler(() => DeleteSelectedStep(), () => CanExecute));
             }
         }
-
         private ICommand _deleteTestRequestCommand;
         public ICommand DeleteTestRequestCommand
         {
             get
             {
-                return _deleteTestRequestCommand ?? (_deleteTestRequestCommand = new CommandHandler(() => DeleteSelectedTestRequest(), () => ValidateTestRequestStep));
+                return _deleteTestRequestCommand ?? (_deleteTestRequestCommand = new CommandHandler(() => DeleteSelectedTestRequest(), () => CanExecute));
             }
         }
-
         private void DeleteSelectedTestRequest()
         {
-           
-        }
+            var testRequest = currentSelectedTestRequest;
 
+          //  currentWorkingTestRequestSteps.Remove(testRequest);
+            //currentWorkingContext.Remove(step);
+            //currentWorkingTestRequest.Steps.Remove(step);
+        }
         private void DeleteSelectedStep()
         {
             var step = currentTestRequestStep;
@@ -769,7 +778,6 @@ namespace SimTestRequestBridge.ViewModels
 
             SaveCurrentTestRequest();
         }
-
         private ICommand _orderStepUpCommand;
         public ICommand OrderStepUpCommand
         {
@@ -778,7 +786,6 @@ namespace SimTestRequestBridge.ViewModels
                 return _orderStepUpCommand ?? (_orderStepUpCommand = new CommandHandler(() => OrderSelectedStepUp(), () => CanExecute));
             }
         }
-
         private ICommand _orderStepDownCommand;
         public ICommand OrderStepDownCommand
         {
@@ -787,7 +794,6 @@ namespace SimTestRequestBridge.ViewModels
                 return _orderStepDownCommand ?? (_orderStepDownCommand = new CommandHandler(() => OrderSelectedStepDown(), () => CanExecute));
             }
         }
-
         public void OrderSelectedStepUp()
         {
             MoveAndUpdateOrder(currentWorkingTestRequest.Steps, currentTestRequestStep, currentTestRequestStep.StepNumber - 1);
@@ -806,7 +812,6 @@ namespace SimTestRequestBridge.ViewModels
                 return _generateSendFileCommand ?? (_generateSendFileCommand = new CommandHandler(() => GenerateSendFileForCurrentStep(), () => ValidateTestRequestStep));
             }
         }
-
         private ICommand _generateAllTestRequestsSendFiles;
         public ICommand GenerateAllTestRequestsSendFiles
         {
@@ -815,7 +820,6 @@ namespace SimTestRequestBridge.ViewModels
                 return _generateAllTestRequestsSendFiles ?? (_generateAllTestRequestsSendFiles = new CommandHandler(() => GenerateAllTestRequestSendFiles(), () => ValidateTestRequestSteps));
             }
         }
-        
         private ICommand _newStepCommand;
         public ICommand NewStepCommand
         {
@@ -824,8 +828,6 @@ namespace SimTestRequestBridge.ViewModels
                 return _newStepCommand ?? (_newStepCommand = new CommandHandler(() => AddNewStepToCurrentTestRequest(), () => CanExecute));
             }
         }
-
-
         private ICommand _stageCommand;
         public ICommand StageCommand
         {
@@ -834,7 +836,6 @@ namespace SimTestRequestBridge.ViewModels
                 return _stageCommand ?? (_stageCommand = new CommandHandler(() => StageCurrentSession(), () => CanExecute));
             }
         }
-
         private ICommand _newCommand;
         public ICommand NewCommand
         {
@@ -843,7 +844,6 @@ namespace SimTestRequestBridge.ViewModels
                 return _newCommand ?? (_newCommand = new CommandHandler(() => testGenerateNewTestRequest(), () => CanExecute));
             }
         }
-
         private ICommand _refreshCommand;
         public ICommand RefreshCommand
         {
@@ -852,7 +852,6 @@ namespace SimTestRequestBridge.ViewModels
                 return _refreshCommand ?? (_refreshCommand = new CommandHandler(() => LoadTestRequestsAsync(), () => CanExecute));
             }
         }
-        
         public bool CanExecute
         {
             get
@@ -860,7 +859,6 @@ namespace SimTestRequestBridge.ViewModels
                 return true;
             }
         }
-
         public bool WorkingContextHasChanges
         {
             get
@@ -896,7 +894,6 @@ namespace SimTestRequestBridge.ViewModels
             
             }
         }
-
         public ObservableCollection<Location> Locations
         {
             get
@@ -909,7 +906,6 @@ namespace SimTestRequestBridge.ViewModels
                 OnPropertyChanged();
             }
         }
-
         public ObservableCollection<StepStartingCondition> StepStartingConditions
         {
             get
@@ -1065,7 +1061,6 @@ namespace SimTestRequestBridge.ViewModels
                 OnPropertyChanged();
             }
         }
-
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

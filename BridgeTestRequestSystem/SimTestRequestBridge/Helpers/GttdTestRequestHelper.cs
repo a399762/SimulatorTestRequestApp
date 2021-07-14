@@ -14,16 +14,23 @@ namespace SimBridge.Helpers
         public static GTTDTestRequestDataWrapper ConvertFromXMLToEntity(String xmlData)
         {
             XDocument document = XDocument.Parse(xmlData);
-            var stepListRaw = document.Descendants().Where(p => p.Name.LocalName == "step");
-            //< test_step_number > A </ test_step_number >
 
+
+            //<test test_number="09U200V32 I">
+            var testElement = document.Descendants().FirstOrDefault(p => p.Name.LocalName == "test");
+            var testNumber = testElement.Attribute("test_number").Value;
+
+            var testCodeElement = testElement.Descendants().FirstOrDefault(p => p.Name.LocalName == "test_code");
+            var testCode = testCodeElement.Value;
+
+
+            var stepListRaw = document.Descendants().Where(p => p.Name.LocalName == "step");
             var step0A = stepListRaw.FirstOrDefault(p => p.Attribute("step_sequence").Value == "0");
 
             var conds = step0A.Elements().Descendants("cond");
             var preferDriverRaw = conds.FirstOrDefault(i => i.Attribute("name").Value == "PREFER DRIVER");
             var machineNameRaw = conds.FirstOrDefault(i => i.Attribute("name").Value == "MACHINE NAME");
             var vehicleModelRaw = conds.FirstOrDefault(i => i.Attribute("name").Value == "VEHICLE MODEL");
-           
             var stepsRaw = conds.FirstOrDefault(i => i.Attribute("name").Value == "VEHICLE MODEL");
 
             GTTDTestRequestDataWrapper testRequestWrapper = new GTTDTestRequestDataWrapper();
@@ -31,12 +38,15 @@ namespace SimBridge.Helpers
             testRequestWrapper.MACHINE_NAME = machineNameRaw.Value;
             testRequestWrapper.VEHICLE_MODEL = vehicleModelRaw.Value;
             testRequestWrapper.MACHINE_NAME = machineNameRaw.Value;
+            testRequestWrapper.Test_Number = testNumber;
+            testRequestWrapper.Test_Code = testCode;
             testRequestWrapper.Steps = new List<GTTDTestRequestStepDataWrapper>();
             var validSteps = stepListRaw.Where(p => int.Parse(p.Attribute("step_sequence").Value) > 0);
 
             foreach (var item in validSteps)
             {
                 GTTDTestRequestStepDataWrapper stepWrapper = new GTTDTestRequestStepDataWrapper();
+                var stepNumber = item.Attribute("step_sequence").Value;
 
                 var stepConditions = item.Elements().Descendants("cond");
                 var MANEUVER = stepConditions.FirstOrDefault(i => i.Attribute("name").Value == "MANEUVER");
@@ -53,7 +63,7 @@ namespace SimBridge.Helpers
                 var RR_SERIAL = stepConditions.FirstOrDefault(i => i.Attribute("name").Value == "RR-SERIAL");
                 var RR_INFLATION = stepConditions.FirstOrDefault(i => i.Attribute("name").Value == "RR-INFLATION");
                 var TRACK = stepConditions.FirstOrDefault(i => i.Attribute("name").Value == "TRACK");
-                var TIRE_MODEL = stepConditions.FirstOrDefault(i => i.Attribute("name").Value == "TIRE_MODEL");
+                var TIRE_MODEL = stepConditions.FirstOrDefault(i => i.Attribute("name").Value == "TIRE MODEL");
 
                 stepWrapper.MANEUVER = MANEUVER.Value;
                 stepWrapper.LF_CONST = LF_CONST.Value;
@@ -70,7 +80,7 @@ namespace SimBridge.Helpers
                 stepWrapper.RR_INFLATION = RF_INFLATION.Value;
                 stepWrapper.TIRE_MODEL = TIRE_MODEL.Value;
                 stepWrapper.TRACK = TRACK.Value;
-
+                stepWrapper.Test_Step_Number = stepNumber;
                 testRequestWrapper.Steps.Add(stepWrapper);
             }
             
