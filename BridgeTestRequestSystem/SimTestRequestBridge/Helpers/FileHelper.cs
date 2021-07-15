@@ -6,6 +6,11 @@ namespace SimTestRequestBridge.Helpers
 {
     static class FileHelper
     {
+        //may pass this in later from settings....
+        private static string realTimeRootPathString = @"/vigrade/vicrt/GoodyearTestSessions";
+
+
+
         public static DirectoryInfo GetStagingFolderForTestRequest(string testRequestNumber,string stagingPath)
         {
             DirectoryInfo directory = new DirectoryInfo(stagingPath + @"\" + testRequestNumber);
@@ -57,7 +62,17 @@ namespace SimTestRequestBridge.Helpers
             return directory;
         }
 
-        public static bool CreateVICRTCDBCFGIfNotExist(string testRequestNumber, string stagingPath)
+        public static string GetRealTimeTestRequestRootPath()
+        {
+            return realTimeRootPathString;
+        }
+        public static string GetRealTimeTestRequestPath(string requestNumber)
+        {
+            string directory = GetRealTimeTestRequestRootPath() + @"/" + requestNumber;
+            return directory;
+        }
+
+        public static bool CreateVICRTCDBCFG(string carCDBFileName, string testRequestNumber, string stagingPath)
         {
             try
             {
@@ -67,21 +82,25 @@ namespace SimTestRequestBridge.Helpers
                 //what is the expected local file path/name for the config file?
                 string cfgPath = GetSendFilesStagingFolderForTestRequest(testRequestNumber, stagingPath) + @"\vicrt_cdb.cfg";
 
-                if (!File.Exists(cfgPath))
-                {
-                    string carrealtime_shared = "DATABASE carrealtime_shared /vigrade/vicrt/cdb/carrealtime_shared.cdb";
-                    string tracks = "DATABASE tracks /vigrade/vicrt/cdb/tracks.cdb";
-                    string car = "DATABASE RaceCar /vigrade/vicrt/GoodyearTestSessions_temp/RaceCar_testRequest/RaceCar.cdb";
-                    string Tires = "DATABASE Tires /vigrade/vicrt/GoodyearTestSessions_temp/RaceCar_testRequest/Tires.cdb";
+                //these two are fixed, users need to know not to move these.
+                string carrealtime_shared = "DATABASE carrealtime_shared /vigrade/vicrt/cdb/carrealtime_shared.cdb";
+                string tracks = "DATABASE tracks /vigrade/vicrt/cdb/tracks.cdb";
 
-                    List<string> cdbentries = new List<string>();
-                    cdbentries.Add(carrealtime_shared);
-                    cdbentries.Add(tracks);
-                    cdbentries.Add(car);
-                    cdbentries.Add(Tires);
+                //based on selected car name, 
+                //string car = "DATABASE RaceCar /vigrade/vicrt/GoodyearTestSessions/RaceCar_testRequest/RaceCar.cdb";
+                //0 = car name without .cdb;1 = realtime test request path;  2 = Car name with cdb
+                string carNameShort = Path.GetFileNameWithoutExtension(carCDBFileName);
+                string reaTimeTestRequestPath = GetRealTimeTestRequestPath(testRequestNumber);
+                string car = string.Format("DATABASE {0} {1}/{2}", carNameShort, reaTimeTestRequestPath, carCDBFileName);
+                string Tires = string.Format("DATABASE Tires {0}/Tires.cdb", reaTimeTestRequestPath, "");
 
-                    File.WriteAllLines(cfgPath, cdbentries.ToArray());
-                }
+                List<string> cdbentries = new List<string>();
+                cdbentries.Add(carrealtime_shared);
+                cdbentries.Add(tracks);
+                cdbentries.Add(car);
+                cdbentries.Add(Tires);
+
+                File.WriteAllLines(cfgPath, cdbentries.ToArray());
             }
             catch(Exception)
             {

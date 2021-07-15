@@ -626,11 +626,14 @@ namespace SimTestRequestBridge.ViewModels
             string stepFileName = step.StepNumber + "_" + step.LFTire.Construction + "_" + step.RFTire.Construction + "_" + step.LRTire.Construction + "_" + step.RRTire.Construction + ".xml";
 
             //where do we want to save...
-            string stepSendFilePath = Path.Combine(directoryInfo.FullName, stepFileName); 
+            string stepSendFilePath = Path.Combine(directoryInfo.FullName, stepFileName);
 
             //check to see if we have a vicrtcdb.cfg made yet
             //create if not
-            FileHelper.CreateVICRTCDBCFGIfNotExist(testRequest.TestNumber, rootStagingPath);
+
+            string cdbFileName = Path.GetFileName(testRequest.CDBFilePath);
+
+            FileHelper.CreateVICRTCDBCFG(cdbFileName, testRequest.TestNumber, rootStagingPath);
 
             //open init file.
             string folder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName) + @"\Resources\";

@@ -162,10 +162,12 @@ namespace SimTestRequestBridge
             tryStageCDB();
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "everyone on newer than win7")]
         private void tryStageCDB()
         {
             VistaFolderBrowserDialog vistaFolderBrowserDialog = new VistaFolderBrowserDialog();
             bool? result = vistaFolderBrowserDialog.ShowDialog();
+         
 
             if (result == true)
             {
