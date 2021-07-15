@@ -9,11 +9,11 @@ namespace SimTestRequestBridge.Helpers
         //may pass this in later from settings....
         private static string realTimeRootPathString = @"/vigrade/vicrt/GoodyearTestSessions";
 
-
-
         public static DirectoryInfo GetStagingFolderForTestRequest(string testRequestNumber,string stagingPath)
         {
-            DirectoryInfo directory = new DirectoryInfo(stagingPath + @"\" + testRequestNumber);
+            string cleanTestRequestNumber = CleanTestNumberForFileNameUse(testRequestNumber);
+
+            DirectoryInfo directory = new DirectoryInfo(stagingPath + @"\" + cleanTestRequestNumber);
             
             if (!Directory.Exists(directory.FullName))
                 Directory.CreateDirectory(directory.FullName);
@@ -21,10 +21,12 @@ namespace SimTestRequestBridge.Helpers
             return directory;
         }
 
+
         public static DirectoryInfo GetTiresStagingFolderForTestRequest(string testRequestNumber, int step, TireLocationsCodes tirePosition, string stagingPath)
         {
+            string cleanTestRequestNumber = CleanTestNumberForFileNameUse(testRequestNumber);
             string tireSubDir = @"Tires.cdb\Step_" + step + @"\" + tirePosition;
-            DirectoryInfo directory = new DirectoryInfo(Path.Combine(GetStagingFolderForTestRequest(testRequestNumber, stagingPath).FullName, tireSubDir));
+            DirectoryInfo directory = new DirectoryInfo(Path.Combine(GetStagingFolderForTestRequest(cleanTestRequestNumber, stagingPath).FullName, tireSubDir));
 
             if (!Directory.Exists(directory.FullName))
                 Directory.CreateDirectory(directory.FullName);
@@ -32,9 +34,19 @@ namespace SimTestRequestBridge.Helpers
             return directory;
         }
 
+        public static string GetTiresMDIDSStagingFolderForTestRequest(string testRequestNumber, int step, TireLocationsCodes tirePosition, string stagingPath,string tireFileName)
+        {
+            string cleanTestRequestNumber = CleanTestNumberForFileNameUse(testRequestNumber);
+            string tireSubDir = @"mdids://Tires/Step_" + step + @"/" + tirePosition + @"/" + tireFileName;
+            return tireSubDir;
+        }
+
+       
+
         public static DirectoryInfo GetSendFilesStagingFolderForTestRequest(string testRequestNumber, string stagingPath)
         {
-            DirectoryInfo directory = new DirectoryInfo(Path.Combine(GetStagingFolderForTestRequest(testRequestNumber, stagingPath).FullName, "Send_files"));
+            string cleanTestRequestNumber = CleanTestNumberForFileNameUse(testRequestNumber);
+            DirectoryInfo directory = new DirectoryInfo(Path.Combine(GetStagingFolderForTestRequest(cleanTestRequestNumber, stagingPath).FullName, "Send_files"));
 
             if (!Directory.Exists(directory.FullName))
                 Directory.CreateDirectory(directory.FullName);
@@ -44,7 +56,8 @@ namespace SimTestRequestBridge.Helpers
 
         public static DirectoryInfo GetOriginalSendFilesStagingFolderForTestRequest(string testRequestNumber, string stagingPath)
         {
-            DirectoryInfo directory = new DirectoryInfo(Path.Combine(GetSendFilesStagingFolderForTestRequest(testRequestNumber, stagingPath).FullName, "Original"));
+            string cleanTestRequestNumber = CleanTestNumberForFileNameUse(testRequestNumber);
+            DirectoryInfo directory = new DirectoryInfo(Path.Combine(GetSendFilesStagingFolderForTestRequest(cleanTestRequestNumber, stagingPath).FullName, "Original"));
 
             if (!Directory.Exists(directory.FullName))
                 Directory.CreateDirectory(directory.FullName);
@@ -54,7 +67,8 @@ namespace SimTestRequestBridge.Helpers
 
         public static DirectoryInfo GetVDFStagingFolderForTestRequest(string testRequestNumber, string stagingPath)
         {
-            DirectoryInfo directory = new DirectoryInfo(Path.Combine(GetSendFilesStagingFolderForTestRequest(testRequestNumber, stagingPath).FullName, "User_VDFs"));
+            string cleanTestRequestNumber = CleanTestNumberForFileNameUse(testRequestNumber);
+            DirectoryInfo directory = new DirectoryInfo(Path.Combine(GetSendFilesStagingFolderForTestRequest(cleanTestRequestNumber, stagingPath).FullName, "User_VDFs"));
 
             if (!Directory.Exists(directory.FullName))
                 Directory.CreateDirectory(directory.FullName);
@@ -66,21 +80,25 @@ namespace SimTestRequestBridge.Helpers
         {
             return realTimeRootPathString;
         }
-        public static string GetRealTimeTestRequestPath(string requestNumber)
+        public static string GetRealTimeTestRequestPath(string testRequestNumber)
         {
-            string directory = GetRealTimeTestRequestRootPath() + @"/" + requestNumber;
+            string cleanTestRequestNumber = CleanTestNumberForFileNameUse(testRequestNumber);
+            string directory = GetRealTimeTestRequestRootPath() + @"/" + cleanTestRequestNumber;
             return directory;
         }
 
         public static bool CreateVICRTCDBCFG(string carCDBFileName, string testRequestNumber, string stagingPath)
         {
+            string cleanTestRequestNumber = CleanTestNumberForFileNameUse(testRequestNumber);
+
             try
             {
+
                 //the vicrt_cdb.cfg file is required to link the mdis file structure to the local machines folder structure,
                 //so that everything outside of the cfg file can be refrenced reletively. and not absolutely.
 
                 //what is the expected local file path/name for the config file?
-                string cfgPath = GetSendFilesStagingFolderForTestRequest(testRequestNumber, stagingPath) + @"\vicrt_cdb.cfg";
+                string cfgPath = GetSendFilesStagingFolderForTestRequest(cleanTestRequestNumber, stagingPath) + @"\vicrt_cdb.cfg";
 
                 //these two are fixed, users need to know not to move these.
                 string carrealtime_shared = "DATABASE carrealtime_shared /vigrade/vicrt/cdb/carrealtime_shared.cdb";
@@ -90,9 +108,9 @@ namespace SimTestRequestBridge.Helpers
                 //string car = "DATABASE RaceCar /vigrade/vicrt/GoodyearTestSessions/RaceCar_testRequest/RaceCar.cdb";
                 //0 = car name without .cdb;1 = realtime test request path;  2 = Car name with cdb
                 string carNameShort = Path.GetFileNameWithoutExtension(carCDBFileName);
-                string reaTimeTestRequestPath = GetRealTimeTestRequestPath(testRequestNumber);
+                string reaTimeTestRequestPath = GetRealTimeTestRequestPath(cleanTestRequestNumber);
                 string car = string.Format("DATABASE {0} {1}/{2}", carNameShort, reaTimeTestRequestPath, carCDBFileName);
-                string Tires = string.Format("DATABASE Tires {0}/Tires.cdb", reaTimeTestRequestPath, "");
+                string Tires = string.Format("DATABASE Tires {0}/Tires.cdb", reaTimeTestRequestPath);
 
                 List<string> cdbentries = new List<string>();
                 cdbentries.Add(carrealtime_shared);
@@ -117,6 +135,12 @@ namespace SimTestRequestBridge.Helpers
             CopyAll(diSource, diTarget);
         }
 
+        private static string CleanTestNumberForFileNameUse(string name)
+        {
+            string result;
+            result = name.Replace(" ", "_");
+            return result;
+        }
         public static void CopyAll(DirectoryInfo source, DirectoryInfo target)
         {
             Directory.CreateDirectory(target.FullName);
